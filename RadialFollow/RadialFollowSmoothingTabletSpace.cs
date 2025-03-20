@@ -6,7 +6,7 @@ using OpenTabletDriver.Plugin.Tablet;
 
 namespace RadialFollow
 {
-    [PluginName("AbstractQbit's Radial Follow Smoothing (Tablet coordinates)")]
+    [PluginName("saturn")]
     public class RadialFollowSmoothingTabletSpace : IPositionedPipelineElement<IDeviceReport>
     {
         public RadialFollowSmoothingTabletSpace() : base() { }
@@ -14,6 +14,7 @@ namespace RadialFollow
 
         [Property("Outer Radius"), DefaultPropertyValue(1.0d), Unit("mm"), ToolTip
         (
+            "This scales with cursor velocity by default. \n\n" +
             "Outer radius defines the max distance the cursor can lag behind the actual reading.\n\n" +
             "Unit of measurement is millimetres.\n" +
             "The value should be >= 0 and inner radius.\n" +
@@ -29,6 +30,7 @@ namespace RadialFollow
 
         [Property("Inner Radius"), DefaultPropertyValue(0.0d), Unit("mm"), ToolTip
         (
+            "This scales with cursor velocity by default. \n\n" +
             "Inner radius defines the max distance the tablet reading can deviate from the cursor without moving it.\n" +
             "This effectively creates a deadzone in which no movement is produced.\n\n" +
             "Unit of measurement is millimetres.\n" +
@@ -53,12 +55,12 @@ namespace RadialFollow
             set { radialCore.SmoothingCoefficient = value; }
         }
 
-        [Property("Soft Knee Scale"), DefaultPropertyValue(1.0d), ToolTip
+        [Property("Soft Knee Scale"), DefaultPropertyValue(0.75d), ToolTip
         (
             "Soft knee scale determines how soft the transition between smoothing inside and outside the outer radius is.\n\n" +
             "Possible value range is 0..100, higher values mean softer transition.\n" +
             "The effect is somewhat logarithmic, i.e. most of the change happens closer to zero.\n\n" +
-            "Default value is 1.0"
+            "Default value is 0.75"
         )]
         public double SoftKneeScale
         {
@@ -78,13 +80,48 @@ namespace RadialFollow
             set { radialCore.SmoothingLeakCoefficient = value; }
         }
 
+        [Property("Velocity Divisor"), DefaultPropertyValue(5.0d), ToolTip
+        (
+            "Radius will be multiplied by the cursor's velocity divided by this number up to 1 * the radius value.\n\n" +
+            "Unit of measurement may be millimeters per report rate. A full area CTL-480 user could use 5, so you will likely need a lesser value than this.\n\n" +
+            "Default value is 5.0"
+        )]
+        public double VelocityDivisor
+        {
+            get => radialCore.VelocityDivisor;
+            set { radialCore.VelocityDivisor = value; }
+        }
+
+        [Property("Minimum Radius Multiplier"), DefaultPropertyValue(0.1d), ToolTip
+        (
+            "As radius scales by velocity, it might be useful for there to still be some radius even if the velocity is low.\n\n" +
+            "Possible value range is 0..1, 0 means the radius will become small as to be effectively 0, 1 means no velocity scaling.\n\n" +
+            "Default value is 0.1"
+        )]
+        public double MinimumRadiusMultiplier
+        {
+            get => radialCore.MinimumRadiusMultiplier;
+            set { radialCore.MinimumRadiusMultiplier = value; }
+        }
+        
+        [BooleanProperty("Velocity Scales Knee", ""), DefaultPropertyValue(false), ToolTip
+        (
+            "Should the soft knee scale be multiplied by velocity? \n\n" +
+            "Default value is false"
+        )]
+        public bool VelocityScalesKnee
+        {
+            get => radialCore.VelocityScalesKnee;
+            set { radialCore.VelocityScalesKnee = value; }
+        }
+
         public event Action<IDeviceReport> Emit;
 
         public void Consume(IDeviceReport value)
         {
             if (value is ITabletReport report)
             {
-                report.Position = radialCore.Filter(report.Position * mmScale) / mmScale;
+                report.Position = radialCore.Filter(value, report.Position * mmScale) / mmScale;
                 value = report;
             }
             Emit?.Invoke(value);
