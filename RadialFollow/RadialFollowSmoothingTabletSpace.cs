@@ -106,7 +106,9 @@ namespace RadialFollow
         
         [BooleanProperty("Velocity Scales Knee", ""), DefaultPropertyValue(false), ToolTip
         (
-            "Should the soft knee scale be multiplied by velocity? \n\n" +
+            "Only check this if you know what you're doing.\n\n" +
+            "Should the soft knee scale be multiplied by 1 + velocity?\n" +
+            "If true, it's recommended to use a low value for the soft knee scale, like 0.5. Lower for larger area.\n\n" +
             "Default value is false"
         )]
         public bool VelocityScalesKnee
