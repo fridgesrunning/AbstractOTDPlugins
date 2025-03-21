@@ -52,7 +52,7 @@ namespace RadialFollow
         public double VelocityDivisor
         {
             get { return vDiv; }
-            set { vDiv = System.Math.Clamp(value, 0.0f, 1000000.0f);}
+            set { vDiv = System.Math.Clamp(value, 0.01f, 1000000.0f);}
         }
         private double vDiv;
 
@@ -140,7 +140,7 @@ namespace RadialFollow
 
                 accel = vel - Math.Sqrt(Math.Pow(seconddiff.X, 2) + Math.Pow(seconddiff.Y, 2)) / 100;
 
-                accelMult = Smoothstep(accel, -1, 0) + Smoothstep(accel, 0, 1);
+                accelMult = Smoothstep(accel, -1 / (6 / vDiv), 0) + Smoothstep(accel, 0, 1 / (6 / vDiv));
             }
         }
         
@@ -177,7 +177,7 @@ namespace RadialFollow
             {
             if (value is ITabletReport report)
             {
-                velocity = (vel + 1) * accelMult;
+                velocity = (6 * (vel / vDiv) + 1) * accelMult;
             }
             }
 
@@ -196,7 +196,7 @@ namespace RadialFollow
             {
             if (value is ITabletReport report)
             {
-                velocity = (vel + 1) * accelMult;
+                velocity = (6 * (vel / vDiv) + 1) * accelMult;
             }
             }
          return (velocity * knScale) * Math.Log(inverseTanh(Math.Exp((x - 1) / (knScale * velocity))), Math.E);
@@ -209,7 +209,7 @@ namespace RadialFollow
             {
             if (value is ITabletReport report)
             {
-                velocity = (vel + 1) * accelMult;
+                velocity = (6 * (vel / vDiv) + 1) * accelMult;
             }
             }
             var e = Math.Exp(x / (knScale * velocity));
