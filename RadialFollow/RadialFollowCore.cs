@@ -96,11 +96,8 @@ namespace RadialFollow
             if (!(float.IsFinite(cursor.X) & float.IsFinite(cursor.Y) & stopwatch.Restart().TotalMilliseconds < 50))
                 cursor = target;
 
-            if (accelMult < 0.5 & vel / vDiv < 0.25)
-            {
+            if (accelMult < 0.25 & vel / vDiv < 0.25)
                 cursor = target;
-                Console.WriteLine("rawdog!");
-            }
 
             return cursor;
         }
