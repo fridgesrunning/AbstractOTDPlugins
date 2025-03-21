@@ -74,11 +74,19 @@ namespace RadialFollow
         public double ResetMs = 1;
         public double GridScale = 1;
 
+        public static double Smoothstep(double x, double start, double end)
+        {
+            x = Math.Clamp((x - start) / (end - start), 0.0, 1.0);
+
+            return x * x * (3.0 - 2.0 * x);
+        }
+
         Vector2 cursor;
         HPETDeltaStopwatch stopwatch = new HPETDeltaStopwatch(true);
 
         public Vector2 Filter(IDeviceReport value, Vector2 target)
         {
+            UpdateReports(value);
             Vector2 direction = target - cursor;
             float distToMove = SampleRadialCurve(value, direction.Length());
             direction = Vector2.Normalize(direction);
@@ -88,12 +96,56 @@ namespace RadialFollow
             if (!(float.IsFinite(cursor.X) & float.IsFinite(cursor.Y) & stopwatch.Restart().TotalMilliseconds < 50))
                 cursor = target;
 
+            if (accelMult < 0.5 & vel / vDiv < 0.25)
+            {
+                cursor = target;
+                Console.WriteLine("rawdog!");
+            }
+
             return cursor;
         }
 
         double xOffset(IDeviceReport value) => getXOffest(value);
         
         double scaleComp(IDeviceReport value) => getScaleComp(value);
+
+        public Vector2 lastLastReport;
+
+        public Vector2 lastReport;
+
+        public Vector2 currReport;
+
+        public Vector2 diff;
+
+        public Vector2 seconddiff;
+
+        public double accel;
+
+        public double vel;
+
+        public double accelMult;
+
+        void UpdateReports(IDeviceReport value)
+        {
+            if (value is ITabletReport report)
+            {
+                lastLastReport = lastReport;
+
+                lastReport = currReport;
+
+                currReport = report.Position;
+
+                diff = currReport - lastReport;
+
+                seconddiff = lastReport - lastLastReport;
+
+                vel =  Math.Sqrt(Math.Pow(diff.X, 2) + Math.Pow(diff.Y, 2)) / 100;
+
+                accel = vel - Math.Sqrt(Math.Pow(seconddiff.X, 2) + Math.Pow(seconddiff.Y, 2)) / 100;
+
+                accelMult = Smoothstep(accel, -1, 0) + Smoothstep(accel, 0, 1);
+            }
+        }
         
         //, scaleComp;
       //  void updateDerivedParams(IDeviceReport value)
@@ -102,7 +154,7 @@ namespace RadialFollow
       //      {
       //          xOffset = getXOffest(value);
        //         scaleComp = getScaleComp(value);
-       //     }
+       //     } 
        //     else // Calculating them with functions would cause / by 0
        //     {
        //         xOffset = -1;
@@ -128,9 +180,7 @@ namespace RadialFollow
             {
             if (value is ITabletReport report)
             {
-                Vector2 pos = report.Position / 100;
-                Vector2 dih = pos - cursor;
-                velocity = Math.Sqrt(Math.Pow(dih.X, 2) + Math.Pow(dih.Y, 2)) + 1;
+                velocity = (vel + 1) * accelMult;
             }
             }
 
@@ -149,9 +199,7 @@ namespace RadialFollow
             {
             if (value is ITabletReport report)
             {
-                Vector2 pos = report.Position / 100;
-                Vector2 dih = pos - cursor;
-                velocity = Math.Sqrt(Math.Pow(dih.X, 2) + Math.Pow(dih.Y, 2)) + 1;
+                velocity = (vel + 1) * accelMult;
             }
             }
          return (velocity * knScale) * Math.Log(inverseTanh(Math.Exp((x - 1) / (knScale * velocity))), Math.E);
@@ -164,9 +212,7 @@ namespace RadialFollow
             {
             if (value is ITabletReport report)
             {
-                Vector2 pos = report.Position / 100;
-                Vector2 dih = pos - cursor;
-                velocity = Math.Sqrt(Math.Pow(dih.X, 2) + Math.Pow(dih.Y, 2)) + 1;
+                velocity = (vel + 1) * accelMult;
             }
             }
             var e = Math.Exp(x / (knScale * velocity));
@@ -184,9 +230,7 @@ namespace RadialFollow
         {
             if (value is ITabletReport report)
             {
-                Vector2 pos = report.Position / 100;
-                Vector2 dih = pos - cursor;
-                double velocity = Math.Sqrt(Math.Pow(dih.X, 2) + Math.Pow(dih.Y, 2));
+                double velocity = vel * accelMult;
                 return Math.Max(Math.Min(velocity / vDiv, 1), minMult) * Math.Max(rOuter, rInner + 0.0001f);
             }
             else
@@ -196,10 +240,7 @@ namespace RadialFollow
         {
              if (value is ITabletReport report)
             {
-                Vector2 pos = report.Position / 100;
-                Vector2 dih = pos - cursor;
-                double velocity = Math.Sqrt(Math.Pow(dih.X, 2) + Math.Pow(dih.Y, 2));
-                Console.WriteLine(velocity / 5);
+                double velocity = vel * accelMult;
                 return Math.Max(Math.Min(velocity / vDiv, 1), minMult) * rInner;
             }
             else
@@ -227,10 +268,8 @@ namespace RadialFollow
             double LowVelocityUnsmooth = 1;
             if (value is ITabletReport report)
             {
-                Vector2 pos = report.Position / 100;
-                Vector2 dih = pos - cursor;
-                velocity = Math.Sqrt(Math.Pow(dih.X, 2) + Math.Pow(dih.Y, 2));
-                LowVelocityUnsmooth = velocity < vDiv ?  1 + (Math.Abs(velocity - vDiv) / vDiv) : 1;
+                velocity = vel;
+                LowVelocityUnsmooth = (velocity * Math.Pow(accelMult, 2)) < vDiv ?  1 + Math.Pow((Math.Abs((velocity * Math.Pow(accelMult, 2)) - vDiv) / (vDiv / 2)), 2) / 2 : 1;
             }
         return leakedFn(value, x * (smoothCoef / LowVelocityUnsmooth) / scaleComp, offset, scaleComp);
         }
