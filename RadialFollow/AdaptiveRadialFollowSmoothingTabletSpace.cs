@@ -107,9 +107,9 @@ namespace AdaptiveRadialFollow
 
         [Property("Minimum Smoothing Divisor"), DefaultPropertyValue(4.0d), ToolTip
         (
-            "As velocity * (1 if neutral accel, 0 if sharp decel, 2 if sharp accel) becomes lower than max radius threshold,\n" +
-            "initial smoothing coefficient approaches being divided by this number.\n\n" +
-            "Possible value range is 2 and up, 2 means the smoothing coefficient will be divided by 2 at most, and so on.\n\n" +
+            "As velocity along with an acceleration factor becomes lower than max radius threshold,\n" +
+            "initial smoothing coefficient approaches being divided by this number * some constant.\n\n" +
+            "Possible value range is 2 and up.\n\n" +
             "Default value is 4.0"
         )]
         public double MinimumSmoothingDivisor

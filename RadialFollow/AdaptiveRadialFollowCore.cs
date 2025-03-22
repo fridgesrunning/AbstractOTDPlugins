@@ -273,7 +273,8 @@ namespace AdaptiveRadialFollow
             if (value is ITabletReport report)
             {
                 velocity = vel;
-                LowVelocityUnsmooth = (velocity * Math.Pow(accelMult, 2)) < vDiv ?  1 + Math.Pow((Math.Abs((velocity * Math.Pow(accelMult, 2)) - vDiv) / (vDiv / (minSmooth - 1))), 2) / 2 : 1;
+                LowVelocityUnsmooth = ((3 * velocity + 7 * accel) * Math.Pow(accelMult, 2)) < (vDiv / 3) ?  1 + Math.Pow((Math.Abs((Math.Max(0, 3 * velocity + 7 * accel) * Math.Pow(accelMult, 2)) - (vDiv / 3)) / ((vDiv / 3) / (minSmooth - 1))), 2) / 2 : 1;
+                Console.WriteLine(LowVelocityUnsmooth);
             }
         return leakedFn(value, x * (smoothCoef / LowVelocityUnsmooth) / scaleComp, offset, scaleComp);
         }
