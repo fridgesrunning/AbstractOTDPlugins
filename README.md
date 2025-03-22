@@ -1,7 +1,7 @@
 # AbstractOTDPlugins [![Total Download Count](https://img.shields.io/github/downloads/AbstractQbit/AbstractOTDPlugins/total.svg)](https://github.com/AbstractQbit/AbstractOTDPlugins/releases)
 A set of plugins for [OpenTabletDriver](https://github.com/OpenTabletDriver/OpenTabletDriver).
 
-## [Radial Follow Smoothing](RadialFollow/README.md)
+## [Adaptive Radial Follow Smoothing](AdaptiveRadialFollow/README.md)
 Hello Bro
 
 ## License

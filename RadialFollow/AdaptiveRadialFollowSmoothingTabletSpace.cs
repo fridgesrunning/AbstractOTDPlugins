@@ -4,15 +4,15 @@ using OpenTabletDriver.Plugin.Attributes;
 using OpenTabletDriver.Plugin.Output;
 using OpenTabletDriver.Plugin.Tablet;
 
-namespace RadialFollow
+namespace AdaptiveRadialFollow
 {
-    [PluginName("saturn")]
-    public class RadialFollowSmoothingTabletSpace : IPositionedPipelineElement<IDeviceReport>
+    [PluginName("Adaptive Radial Follow Smoothing (Tablet Space)")]
+    public class AdaptiveRadialFollowSmoothingTabletSpace : IPositionedPipelineElement<IDeviceReport>
     {
-        public RadialFollowSmoothingTabletSpace() : base() { }
+        public AdaptiveRadialFollowSmoothingTabletSpace() : base() { }
         public PipelinePosition Position => PipelinePosition.PreTransform;
 
-        [Property("Outer Radius"), DefaultPropertyValue(1.0d), Unit("mm"), ToolTip
+        [Property("Outer Radius"), DefaultPropertyValue(2.0d), Unit("mm"), ToolTip
         (
             "This scales with cursor velocity by default. \n\n" +
             "Outer radius defines the max distance the cursor can lag behind the actual reading.\n\n" +
@@ -28,7 +28,7 @@ namespace RadialFollow
             set { radialCore.OuterRadius = value; }
         }
 
-        [Property("Inner Radius"), DefaultPropertyValue(0.0d), Unit("mm"), ToolTip
+        [Property("Inner Radius"), DefaultPropertyValue(1.0d), Unit("mm"), ToolTip
         (
             "This scales with cursor velocity by default. \n\n" +
             "Inner radius defines the max distance the tablet reading can deviate from the cursor without moving it.\n" +
@@ -55,12 +55,12 @@ namespace RadialFollow
             set { radialCore.SmoothingCoefficient = value; }
         }
 
-        [Property("Soft Knee Scale"), DefaultPropertyValue(0.75d), ToolTip
+        [Property("Soft Knee Scale"), DefaultPropertyValue(1.0d), ToolTip
         (
             "Soft knee scale determines how soft the transition between smoothing inside and outside the outer radius is.\n\n" +
             "Possible value range is 0..100, higher values mean softer transition.\n" +
             "The effect is somewhat logarithmic, i.e. most of the change happens closer to zero.\n\n" +
-            "Default value is 0.75"
+            "Default value is 1"
         )]
         public double SoftKneeScale
         {
@@ -72,6 +72,7 @@ namespace RadialFollow
         (
             "Smoothing leak coefficient allows for input smooting to continue past outer radius at a reduced rate.\n\n" +
             "Possible value range is 0..1, 0 means no smoothing past outer radius, 1 means 100% of the smoothing gets through.\n\n" +
+            "Note that this probably shouldn't be above 0 unless you want the Minimum Smoothing Divisor to be below 2 for more smoothing.\n\n" +
             "Default value is 0.0"
         )]
         public double SmoothingLeakCoefficient
@@ -103,12 +104,25 @@ namespace RadialFollow
             get => radialCore.MinimumRadiusMultiplier;
             set { radialCore.MinimumRadiusMultiplier = value; }
         }
+
+        [Property("Minimum Smoothing Divisor"), DefaultPropertyValue(4.0d), ToolTip
+        (
+            "As velocity * (1 if neutral accel, 0 if sharp decel, 2 if sharp accel) becomes lower than max radius threshold,\n" +
+            "initial smoothing coefficient approaches being divided by this number.\n\n" +
+            "Possible value range is 2 and up, 2 means the smoothing coefficient will be divided by 2 at most, and so on.\n\n" +
+            "Default value is 4.0"
+        )]
+        public double MinimumSmoothingDivisor
+        {
+            get => radialCore.MinimumSmoothingDivisor;
+            set { radialCore.MinimumSmoothingDivisor = value; }
+        }
         
         [BooleanProperty("Velocity Scales Knee", ""), DefaultPropertyValue(false), ToolTip
         (
             "Only check this if you know what you're doing.\n\n" +
             "Should the soft knee scale be multiplied by 1 + velocity?\n" +
-            "If true, it's recommended to use a low value for the soft knee scale, like 0.5. Lower for larger area.\n\n" +
+            "If enabled, it's recommended to use a low value for the soft knee scale, like 0.2.\n\n" +
             "Default value is false"
         )]
         public bool VelocityScalesKnee
@@ -129,7 +143,7 @@ namespace RadialFollow
             Emit?.Invoke(value);
         }
 
-        RadialFollowCore radialCore = new RadialFollowCore();
+        AdaptiveRadialFollowCore radialCore = new AdaptiveRadialFollowCore();
 
         [TabletReference]
         public TabletReference TabletReference

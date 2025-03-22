@@ -9,9 +9,9 @@ using OpenTabletDriver.Plugin.Attributes;
 using OpenTabletDriver.Plugin.Output;
 using OpenTabletDriver.Plugin.Tablet;
 
-namespace RadialFollow
+namespace AdaptiveRadialFollow
 {
-    public class RadialFollowCore
+    public class AdaptiveRadialFollowCore
     {
 
         public double OuterRadius
@@ -52,16 +52,23 @@ namespace RadialFollow
         public double VelocityDivisor
         {
             get { return vDiv; }
-            set { vDiv = System.Math.Clamp(value, 0.01f, 1000000.0f);}
+            set { vDiv = System.Math.Clamp(value, 0.01f, 1000000.0f); }
         }
         private double vDiv;
 
         public double MinimumRadiusMultiplier
         {
             get { return minMult; }
-            set { minMult = System.Math.Clamp(value, 0.0f, 1.0f);}
+            set { minMult = System.Math.Clamp(value, 0.0f, 1.0f); }
         }
         private double minMult;
+
+        public double MinimumSmoothingDivisor
+        {
+            get { return minSmooth; }
+            set { minSmooth = System.Math.Clamp(value, 2.0f, 1000000.0f); }
+        }
+        public double minSmooth;
 
         public bool VelocityScalesKnee
         {
@@ -266,7 +273,7 @@ namespace RadialFollow
             if (value is ITabletReport report)
             {
                 velocity = vel;
-                LowVelocityUnsmooth = (velocity * Math.Pow(accelMult, 2)) < vDiv ?  1 + Math.Pow((Math.Abs((velocity * Math.Pow(accelMult, 2)) - vDiv) / (vDiv / 2)), 2) / 2 : 1;
+                LowVelocityUnsmooth = (velocity * Math.Pow(accelMult, 2)) < vDiv ?  1 + Math.Pow((Math.Abs((velocity * Math.Pow(accelMult, 2)) - vDiv) / (vDiv / (minSmooth - 1))), 2) / 2 : 1;
             }
         return leakedFn(value, x * (smoothCoef / LowVelocityUnsmooth) / scaleComp, offset, scaleComp);
         }
