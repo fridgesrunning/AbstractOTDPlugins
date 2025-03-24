@@ -131,6 +131,18 @@ namespace AdaptiveRadialFollow
             set { radialCore.VelocityScalesKnee = value; }
         }
 
+        [Property("Raw Accel Threshold"), DefaultPropertyValue(-0.5d), ToolTip
+        (
+            "I'm really too lazy to do these tooltips seriously.\n" +
+            "if sharp enough decel, then cursor approaches snapping to raw report\n" +
+            "Default value is -0.5"
+        )]
+        public double RawAccelThreshold
+        {
+            get => radialCore.RawAccelThreshold;
+            set { radialCore.RawAccelThreshold = value; }
+        }
+
         public event Action<IDeviceReport> Emit;
 
         public void Consume(IDeviceReport value)

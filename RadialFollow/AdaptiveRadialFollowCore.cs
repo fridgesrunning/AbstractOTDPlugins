@@ -77,16 +77,16 @@ namespace AdaptiveRadialFollow
         }
         private bool vKnee;
 
+        public double RawAccelThreshold
+        {
+            get { return rawThreshold; }
+            set { rawThreshold = System.Math.Clamp(value, -1000000.0, 0.0f); }
+        }
+        public double rawThreshold;
+
         public float SampleRadialCurve(IDeviceReport value, float dist) => (float)deltaFn(value, dist, xOffset(value), scaleComp(value));
         public double ResetMs = 1;
         public double GridScale = 1;
-
-        public static double Smoothstep(double x, double start, double end)
-        {
-            x = Math.Clamp((x - start) / (end - start), 0.0, 1.0);
-
-            return x * x * (3.0 - 2.0 * x);
-        }
 
         Vector2 cursor;
         HPETDeltaStopwatch stopwatch = new HPETDeltaStopwatch(true);
@@ -94,6 +94,8 @@ namespace AdaptiveRadialFollow
         public Vector2 Filter(IDeviceReport value, Vector2 target)
         {
             UpdateReports(value);
+           //if (clockTrigger == true & accel / (6 / vDiv) > rawThreshold)
+          //  return cursor;
             Vector2 direction = target - cursor;
             float distToMove = SampleRadialCurve(value, direction.Length());
             direction = Vector2.Normalize(direction);
@@ -103,9 +105,12 @@ namespace AdaptiveRadialFollow
             if (!(float.IsFinite(cursor.X) & float.IsFinite(cursor.Y) & stopwatch.Restart().TotalMilliseconds < 50))
                 cursor = target;
 
-            if (accelMult < 0.25 & vel / vDiv < 0.25)
-                cursor = target;
-
+            if (accel / (6 / vDiv) < rawThreshold)
+            {
+                double lerpScale = Smoothstep(accel / (6 / vDiv), rawThreshold, rawThreshold - (1 / (6 / vDiv)));
+                cursor = LerpedCursor((float)lerpScale, cursor, target);
+                Console.WriteLine(lerpScale);
+            }
             return cursor;
         }
 
@@ -129,6 +134,10 @@ namespace AdaptiveRadialFollow
 
         public double accelMult;
 
+       // public double clock;
+        
+      //  public bool clockTrigger;
+
         void UpdateReports(IDeviceReport value)
         {
             if (value is ITabletReport report)
@@ -148,6 +157,21 @@ namespace AdaptiveRadialFollow
                 accel = vel - Math.Sqrt(Math.Pow(seconddiff.X, 2) + Math.Pow(seconddiff.Y, 2)) / 100;
 
                 accelMult = Smoothstep(accel, -1 / (6 / vDiv), 0) + Smoothstep(accel, 0, 1 / (6 / vDiv));
+
+              //  if ((accelMult > 1.99) & (clockTrigger == false))
+            //    {
+             //    clockTrigger = true;
+            //     clock = 0;
+           //     }
+
+            //    if (clockTrigger == true)
+            //    {
+            //        accelMult = 2;
+            //        clock += 1;
+            //        Console.WriteLine(clock);
+            //        if (clock > 5)
+            //        clockTrigger = false;
+           //     }
             }
         }
         
@@ -175,6 +199,23 @@ namespace AdaptiveRadialFollow
             < 3 => Math.Log(Math.Tanh(Math.Exp(x)), Math.E),
             _ => 0,
         };
+
+        public static double Smoothstep(double x, double start, double end) // yes i copied this from pp
+        {
+            x = Math.Clamp((x - start) / (end - start), 0.0, 1.0);
+
+            return x * x * (3.0 - 2.0 * x);
+        }
+
+        public static Vector2 LerpedCursor(float x, Vector2 cursor, Vector2 target)
+        {
+            x = Math.Clamp(x, 0.0f, 1.0f);
+    
+         return new Vector2(
+             cursor.X + (target.X - cursor.X) * x,
+             cursor.Y + (target.Y - cursor.Y) * x
+         );
+        }
 
         double kneeScaled(IDeviceReport value, double x) 
         
@@ -274,7 +315,6 @@ namespace AdaptiveRadialFollow
             {
                 velocity = vel;
                 LowVelocityUnsmooth = ((3 * velocity + 7 * accel) * Math.Pow(accelMult, 2)) < (vDiv / 3) ?  1 + Math.Pow((Math.Abs((Math.Max(0, 3 * velocity + 7 * accel) * Math.Pow(accelMult, 2)) - (vDiv / 3)) / ((vDiv / 3) / (minSmooth - 1))), 2) / 2 : 1;
-                Console.WriteLine(LowVelocityUnsmooth);
             }
         return leakedFn(value, x * (smoothCoef / LowVelocityUnsmooth) / scaleComp, offset, scaleComp);
         }

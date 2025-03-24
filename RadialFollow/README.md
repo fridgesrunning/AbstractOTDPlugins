@@ -8,6 +8,15 @@ how to use for noobs
 7. create a folder named anything
 8. insert adaptiveradialfollow.dll
 9. close and reopen otd maybe
-10. profit
+10. make sure adaptive radial follow is the first filter listed when you open otd daemon. it doesnt really have to be the *first* but i would definitely have it before temporal resampler for example
+if it is: profit
+if its not:
+11. save settings as x.json
+12. open x.json with visual studio code
+13. make all the adaptive follow stuff first in order {the whole fancy bracket}
+14. ctrl+s
+15. load x.json into otd
+16. press save
+17. profit
 
 you can mess with the code and run build.ps1 on that folder if you want i just use dotnet build BUT its a noob guide
