@@ -9,7 +9,9 @@ how to use for noobs
 8. insert adaptiveradialfollow.dll
 9. close and reopen otd maybe
 10. make sure adaptive radial follow is the first filter listed when you open otd daemon. it doesnt really have to be the *first* but i would definitely have it before temporal resampler for example
+
 if it is: profit
+
 if its not:
 11. save settings as x.json
 12. open x.json with visual studio code
