@@ -84,6 +84,13 @@ namespace AdaptiveRadialFollow
         }
         public double rawThreshold;
 
+        public bool ConsoleLogging
+        {
+            get { return cLog; }
+            set { cLog = value; }
+        }
+        private bool cLog;
+
         public float SampleRadialCurve(IDeviceReport value, float dist) => (float)deltaFn(value, dist, xOffset(value), scaleComp(value));
         public double ResetMs = 1;
         public double GridScale = 1;
@@ -111,6 +118,24 @@ namespace AdaptiveRadialFollow
                 cursor = LerpedCursor((float)lerpScale, cursor, target);
                 Console.WriteLine(lerpScale);
             }
+
+            if (cLog == true)
+            {
+                Console.WriteLine("Start of report");
+                Console.WriteLine("Raw Velocity: ", vel);
+                Console.WriteLine("Raw Acceleration: ", accel);
+                Console.WriteLine("Accel Mult (this is an additional factor that multiplies velocity, should be close to or 0 on sharp decel, hovering around 1 when neutral, and close to or 2 on sharp accel): ", accelMult);
+                Console.WriteLine("Outside Radius: ", rOuterAdjusted(value, cursor, rOuter, rInner));
+                Console.WriteLine("Inner Radius: ", rInnerAdjusted(value, cursor, rInner));
+                Console.WriteLine("Smoothing Coefficient: ", smoothCoef / (((3 * vel + 7 * accel) * Math.Pow(accelMult, 2)) < (vDiv / 3) ?  1 + Math.Pow((Math.Abs((Math.Max(0, 3 * vel + 7 * accel) * Math.Pow(accelMult, 2)) - (vDiv / 3)) / ((vDiv / 3) / (minSmooth - 1))), 2) / 2 : 1));
+                
+
+                if (vKnee == true)
+                Console.WriteLine("Adjusted Soft Knee Scale ", ((6 * (vel / vDiv) + 1) * accelMult) * knScale);
+
+
+            }
+
             return cursor;
         }
 
@@ -134,9 +159,13 @@ namespace AdaptiveRadialFollow
 
         public double accelMult;
 
-       // public double clock;
+        public double clock;
         
-      //  public bool clockTrigger;
+        public bool clockTrigger;
+
+        public double hangThreshold;
+
+        public bool hangToggle;
 
         void UpdateReports(IDeviceReport value)
         {
@@ -158,20 +187,25 @@ namespace AdaptiveRadialFollow
 
                 accelMult = Smoothstep(accel, -1 / (6 / vDiv), 0) + Smoothstep(accel, 0, 1 / (6 / vDiv));
 
-              //  if ((accelMult > 1.99) & (clockTrigger == false))
-            //    {
-             //    clockTrigger = true;
-            //     clock = 0;
-           //     }
+                if (hangToggle == true)
+                {
 
-            //    if (clockTrigger == true)
-            //    {
-            //        accelMult = 2;
-            //        clock += 1;
-            //        Console.WriteLine(clock);
-            //        if (clock > 5)
-            //        clockTrigger = false;
-           //     }
+                if ((accel > hangThreshold) & (clockTrigger == false))
+                {
+                 clockTrigger = true;
+                 clock = 0;
+                }
+
+                if (clockTrigger == true)
+                {
+                    accelMult = 2;
+                    clock += 1;
+                    Console.WriteLine(clock);
+                    if (clock > 5)
+                    clockTrigger = false;
+
+                }
+                }
             }
         }
         

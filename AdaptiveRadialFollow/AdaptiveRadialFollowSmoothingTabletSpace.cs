@@ -96,7 +96,7 @@ namespace AdaptiveRadialFollow
         [Property("Minimum Radius Multiplier"), DefaultPropertyValue(0.1d), ToolTip
         (
             "As radius scales by velocity, it might be useful for there to still be some radius even if the velocity is low.\n\n" +
-            "Possible value range is 0..1, 0 means the radius will become small as to be effectively 0, 1 means no velocity scaling.\n\n" +
+            "Possible value range is 0..1, 0 means the radius will become small as to be effectively 0, 1 means no velocity scaling which I don't recommend.\n\n" +
             "Default value is 0.1"
         )]
         public double MinimumRadiusMultiplier
@@ -105,12 +105,12 @@ namespace AdaptiveRadialFollow
             set { radialCore.MinimumRadiusMultiplier = value; }
         }
 
-        [Property("Minimum Smoothing Divisor"), DefaultPropertyValue(4.0d), ToolTip
+        [Property("Minimum Smoothing Divisor"), DefaultPropertyValue(5.0d), ToolTip
         (
             "As velocity along with an acceleration factor becomes lower than max radius threshold,\n" +
-            "initial smoothing coefficient approaches being divided by this number * some constant.\n\n" +
+            "initial smoothing coefficient approaches being divided by this number * some constant. I checked in console and it's more complex than that but you don't have to worry about it\n\n" +
             "Possible value range is 2 and up.\n\n" +
-            "Default value is 4.0"
+            "Default value is 5.0"
         )]
         public double MinimumSmoothingDivisor
         {
@@ -120,7 +120,7 @@ namespace AdaptiveRadialFollow
         
         [BooleanProperty("Velocity Scales Knee", ""), DefaultPropertyValue(false), ToolTip
         (
-            "Only check this if you know what you're doing.\n\n" +
+            "Only check this if you know what you're doing (if you read the tooltip)\n\n" +
             "Should the soft knee scale be multiplied by 1 + velocity?\n" +
             "If enabled, it's recommended to use a low value for the soft knee scale, like 0.2.\n\n" +
             "Default value is false"
@@ -131,16 +131,30 @@ namespace AdaptiveRadialFollow
             set { radialCore.VelocityScalesKnee = value; }
         }
 
-        [Property("Raw Accel Threshold"), DefaultPropertyValue(-0.5d), ToolTip
+        [Property("Raw Accel Threshold"), DefaultPropertyValue(-0.35d), ToolTip
         (
             "I'm really too lazy to do these tooltips seriously.\n" +
             "if sharp enough decel, then cursor approaches snapping to raw report\n" +
-            "Default value is -0.5"
+            "Default value is -0.35\n\n" +
+            "Please go into process lasso and set the priority of OTD to realtime. This filter is pretty performance intensive due to shit code."
         )]
         public double RawAccelThreshold
         {
             get => radialCore.RawAccelThreshold;
             set { radialCore.RawAccelThreshold = value; }
+        }
+
+        [BooleanProperty("Console Logging", ""), DefaultPropertyValue(false), ToolTip
+        (
+            "Each report, things will be printed.\n\n" +
+            "If the rate of prints exceeds report rate, then that is bad and this filter is not working as well as it could be. read the readme\n" +
+            "You can use this to make sure that your parameters and thresholds are right.\n\n" +
+            "Default value is false"
+        )]
+        public bool ConsoleLogging
+        {
+            get => radialCore.ConsoleLogging;
+            set { radialCore.ConsoleLogging = value; }
         }
 
         public event Action<IDeviceReport> Emit;
