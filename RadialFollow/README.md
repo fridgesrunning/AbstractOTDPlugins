@@ -1,4 +1,5 @@
 how to use for noobs
+
 1. get otd source code from zip, unzip it
 2. go to the otd source code folder and run build.ps1
 3. if it doesnt work immediately then either enable scripts running using the solution shown to you by powershell or open powershell then run build.ps1
@@ -13,6 +14,7 @@ how to use for noobs
 if it is: profit
 
 if its not:
+
 11. save settings as x.json
 12. open x.json with visual studio code
 13. make all the adaptive follow stuff first in order {the whole fancy bracket}
