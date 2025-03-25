@@ -105,6 +105,19 @@ namespace AdaptiveRadialFollow
             set { radialCore.MinimumRadiusMultiplier = value; }
         }
 
+        [Property("Radial Mult Power"), DefaultPropertyValue(2.0d), ToolTip
+        (
+            "Velocity / the velocity divisor returns a radial multiplier, which is raised to this power.\n\n" +
+            "Possible value range is 1 and up, 1 means radius will scale linearly with velocity up to 1 and 2 means it will be squared.\n\n" +
+            "2 is generally good for both supporting massive radii for extreme snap and keeping radii low when flowing at the same time.\n\n" +
+            "Default value is 2.0"
+        )]
+        public double RadialMultPower
+        {
+            get => radialCore.RadialMultPower;
+            set { radialCore.RadialMultPower = value; }
+        }
+
         [Property("Minimum Smoothing Divisor"), DefaultPropertyValue(5.0d), ToolTip
         (
             "As velocity along with an acceleration factor becomes lower than max radius threshold,\n" +
@@ -134,7 +147,7 @@ namespace AdaptiveRadialFollow
         [Property("Raw Accel Threshold"), DefaultPropertyValue(-0.35d), ToolTip
         (
             "I'm really too lazy to do these tooltips seriously.\n" +
-            "if sharp enough decel, then cursor approaches snapping to raw report\n" +
+            "if sharp enough decel, then cursor starts to approach snapping to raw report\n" +
             "Default value is -0.35\n\n" +
             "Please go into process lasso and set the priority of OTD to realtime. This filter is pretty performance intensive due to shit code."
         )]

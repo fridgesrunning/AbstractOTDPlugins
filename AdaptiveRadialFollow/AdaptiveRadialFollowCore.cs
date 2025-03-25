@@ -63,6 +63,13 @@ namespace AdaptiveRadialFollow
         }
         private double minMult;
 
+        public double RadialMultPower
+        {
+            get { return radPower; }
+            set { radPower = System.Math.Clamp(value, 1.0f, 1000000.0f); }
+        }
+        private double radPower;
+
         public double MinimumSmoothingDivisor
         {
             get { return minSmooth; }
@@ -121,19 +128,27 @@ namespace AdaptiveRadialFollow
 
             if (cLog == true)
             {
-                Console.WriteLine("Start of report");
-                Console.WriteLine("Raw Velocity: ", vel);
-                Console.WriteLine("Raw Acceleration: ", accel);
-                Console.WriteLine("Accel Mult (this is an additional factor that multiplies velocity, should be close to or 0 on sharp decel, hovering around 1 when neutral, and close to or 2 on sharp accel): ", accelMult);
-                Console.WriteLine("Outside Radius: ", rOuterAdjusted(value, cursor, rOuter, rInner));
-                Console.WriteLine("Inner Radius: ", rInnerAdjusted(value, cursor, rInner));
-                Console.WriteLine("Smoothing Coefficient: ", smoothCoef / (((3 * vel + 7 * accel) * Math.Pow(accelMult, 2)) < (vDiv / 3) ?  1 + Math.Pow((Math.Abs((Math.Max(0, 3 * vel + 7 * accel) * Math.Pow(accelMult, 2)) - (vDiv / 3)) / ((vDiv / 3) / (minSmooth - 1))), 2) / 2 : 1));
+                Console.WriteLine("Start of report ----------------------------------------------------");
+                Console.WriteLine("Raw Velocity:");
+                Console.WriteLine(vel);
+                Console.WriteLine("Raw Acceleration:");
+                Console.WriteLine(accel);
+                Console.WriteLine("Accel Mult (this is an additional factor that multiplies velocity, should be close to or 0 on sharp decel, hovering around 1 when neutral, and close to or 2 on sharp accel):");
+                Console.WriteLine(accelMult);
+                Console.WriteLine("Outside Radius:");
+                Console.WriteLine(rOuterAdjusted(value, cursor, rOuter, rInner));
+                Console.WriteLine("Inner Radius:");
+                Console.WriteLine(rInnerAdjusted(value, cursor, rInner));
+                Console.WriteLine("Smoothing Coefficient:");
+                Console.WriteLine(smoothCoef / (1 + (Smoothstep(vel * accelMult, vDiv, 0) * (minSmooth - 1))));
                 
 
                 if (vKnee == true)
-                Console.WriteLine("Adjusted Soft Knee Scale ", ((6 * (vel / vDiv) + 1) * accelMult) * knScale);
-
-
+                {
+                    Console.WriteLine("Adjusted Soft Knee Scale:");
+                    Console.WriteLine(((6 * (vel / vDiv) + 1) * accelMult) * knScale);
+                }
+                Console.WriteLine("End of report ----------------------------------------------------");
             }
 
             return cursor;
@@ -159,13 +174,13 @@ namespace AdaptiveRadialFollow
 
         public double accelMult;
 
-        public double clock;
+//public double clock;
         
-        public bool clockTrigger;
+//public bool clockTrigger;
 
-        public double hangThreshold;
+  //      public double hangThreshold;
 
-        public bool hangToggle;
+   //     public bool hangToggle;
 
         void UpdateReports(IDeviceReport value)
         {
@@ -187,25 +202,25 @@ namespace AdaptiveRadialFollow
 
                 accelMult = Smoothstep(accel, -1 / (6 / vDiv), 0) + Smoothstep(accel, 0, 1 / (6 / vDiv));
 
-                if (hangToggle == true)
-                {
+             //   if (hangToggle == true)
+             //   {
 
-                if ((accel > hangThreshold) & (clockTrigger == false))
-                {
-                 clockTrigger = true;
-                 clock = 0;
-                }
+            //    if ((accel > hangThreshold) & (clockTrigger == false))
+            //    {
+           //      clockTrigger = true;
+            //     clock = 0;
+            //    }
 
-                if (clockTrigger == true)
-                {
-                    accelMult = 2;
-                    clock += 1;
-                    Console.WriteLine(clock);
-                    if (clock > 5)
-                    clockTrigger = false;
+            //    if (clockTrigger == true)
+            //    {
+            //        accelMult = 2;
+           //         clock += 1;
+           //         Console.WriteLine(clock);
+            //        if (clock > 5)
+            //        clockTrigger = false;
 
-                }
-                }
+         //       }
+           //     }
             }
         }
         
@@ -309,8 +324,8 @@ namespace AdaptiveRadialFollow
         {
             if (value is ITabletReport report)
             {
-                double velocity = vel * accelMult;
-                return Math.Max(Math.Min(velocity / vDiv, 1), minMult) * Math.Max(rOuter, rInner + 0.0001f);
+                double velocity = vel * Math.Pow(accelMult, radPower);
+                return Math.Max(Math.Min(Math.Pow(velocity / vDiv, radPower), 1), minMult) * Math.Max(rOuter, rInner + 0.0001f);
             }
             else
             return 0;
@@ -319,8 +334,8 @@ namespace AdaptiveRadialFollow
         {
              if (value is ITabletReport report)
             {
-                double velocity = vel * accelMult;
-                return Math.Max(Math.Min(velocity / vDiv, 1), minMult) * rInner;
+                double velocity = vel * Math.Pow(accelMult, radPower);
+                return Math.Max(Math.Min(Math.Pow(velocity / vDiv, radPower), 1), minMult) * rInner;
             }
             else
             {
@@ -348,7 +363,7 @@ namespace AdaptiveRadialFollow
             if (value is ITabletReport report)
             {
                 velocity = vel;
-                LowVelocityUnsmooth = ((3 * velocity + 7 * accel) * Math.Pow(accelMult, 2)) < (vDiv / 3) ?  1 + Math.Pow((Math.Abs((Math.Max(0, 3 * velocity + 7 * accel) * Math.Pow(accelMult, 2)) - (vDiv / 3)) / ((vDiv / 3) / (minSmooth - 1))), 2) / 2 : 1;
+                LowVelocityUnsmooth = 1 + (Smoothstep(vel * accelMult, vDiv, 0) * (minSmooth - 1));
             }
         return leakedFn(value, x * (smoothCoef / LowVelocityUnsmooth) / scaleComp, offset, scaleComp);
         }
