@@ -121,9 +121,8 @@ namespace AdaptiveRadialFollow
 
             if (accel / (6 / vDiv) < rawThreshold)
             {
-                double lerpScale = Smoothstep(accel / (6 / vDiv), rawThreshold, rawThreshold - (1 / (6 / vDiv)));
+                lerpScale = Smootherstep(accel / (6 / vDiv), rawThreshold, rawThreshold - (1 / (6 / vDiv)));
                 cursor = LerpedCursor((float)lerpScale, cursor, target);
-                Console.WriteLine(lerpScale);
             }
 
             if (cLog == true)
@@ -141,7 +140,8 @@ namespace AdaptiveRadialFollow
                 Console.WriteLine(rInnerAdjusted(value, cursor, rInner));
                 Console.WriteLine("Smoothing Coefficient:");
                 Console.WriteLine(smoothCoef / (1 + (Smoothstep(vel * accelMult, vDiv, 0) * (minSmooth - 1))));
-                
+                Console.WriteLine("Sharp Decel Lerp (With sharp decel, cursor is lerped between calculated value and raw report using this scale):");
+                Console.WriteLine(lerpScale);
 
                 if (vKnee == true)
                 {
@@ -150,6 +150,8 @@ namespace AdaptiveRadialFollow
                 }
                 Console.WriteLine("End of report ----------------------------------------------------");
             }
+
+            lerpScale = 0;
 
             return cursor;
         }
@@ -173,6 +175,8 @@ namespace AdaptiveRadialFollow
         public double vel;
 
         public double accelMult;
+
+        public double lerpScale;
 
 //public double clock;
         
@@ -256,6 +260,13 @@ namespace AdaptiveRadialFollow
             return x * x * (3.0 - 2.0 * x);
         }
 
+        public static double Smootherstep(double x, double start, double end) // this too
+        {
+            x = Math.Clamp((x - start) / (end - start), 0.0, 1.0);
+
+            return x * x * x * (x * (6.0 * x - 15.0) + 10.0);
+        }
+
         public static Vector2 LerpedCursor(float x, Vector2 cursor, Vector2 target)
         {
             x = Math.Clamp(x, 0.0f, 1.0f);
@@ -324,7 +335,7 @@ namespace AdaptiveRadialFollow
         {
             if (value is ITabletReport report)
             {
-                double velocity = vel * Math.Pow(accelMult, radPower);
+                double velocity = vel * accelMult;
                 return Math.Max(Math.Min(Math.Pow(velocity / vDiv, radPower), 1), minMult) * Math.Max(rOuter, rInner + 0.0001f);
             }
             else
@@ -334,7 +345,7 @@ namespace AdaptiveRadialFollow
         {
              if (value is ITabletReport report)
             {
-                double velocity = vel * Math.Pow(accelMult, radPower);
+                double velocity = vel * accelMult;
                 return Math.Max(Math.Min(Math.Pow(velocity / vDiv, radPower), 1), minMult) * rInner;
             }
             else
