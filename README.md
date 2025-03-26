@@ -2,7 +2,7 @@
 A set of plugins for [OpenTabletDriver](https://github.com/OpenTabletDriver/OpenTabletDriver).
 
 ## [Adaptive Radial Follow Smoothing](AdaptiveRadialFollow/README.md)
-Hello Bro
+Hello Bro -- go to releases >>>>>
 
 ## License
 This software is licensed under `GPL-3.0-only` license.
