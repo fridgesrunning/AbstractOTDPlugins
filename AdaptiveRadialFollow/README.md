@@ -5,11 +5,11 @@ how to use for noobs
 3. if it doesnt work immediately then either enable scripts running using the solution shown to you by powershell or open powershell then run build.ps1
 4. go to otd/bin, this is where your otd is
 5. install any plugin
-6. theres now a new folder, go to bin/userata/plugins
+6. theres now a new folder, go to bin/userdata/plugins
 7. create a folder named anything
 8. insert adaptiveradialfollow.dll
 9. close and reopen otd maybe
-10. make sure adaptive radial follow is the first filter listed when you open otd daemon. it doesnt really have to be the *first* but i would definitely have it before temporal resampler for example
+10. make sure adaptive radial follow is the first filter listed when you open otd daemon. it doesnt really have to be the *first* but i would definitely have it before bezier interpolator for example
 
 if it is: profit
 
@@ -22,5 +22,7 @@ if its not:
 15. load x.json into otd
 16. press save
 17. profit
+
+i would rather use bezier interpolator than temporal resampler cause temporal can act weird if your cursor is going fast enough
 
 you can mess with the code and run build.ps1 on that folder if you want i just use dotnet build BUT its a noob guide
