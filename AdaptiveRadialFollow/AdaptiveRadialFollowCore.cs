@@ -285,7 +285,7 @@ namespace AdaptiveRadialFollow
             {
             if (value is ITabletReport report)
             {
-                velocity = (6 * (vel / vDiv) + 1) * accelMult;
+                velocity = (6 * (vel / vDiv) * accelMult) + 1;
             }
             }
 
@@ -304,7 +304,7 @@ namespace AdaptiveRadialFollow
             {
             if (value is ITabletReport report)
             {
-                velocity = (6 * (vel / vDiv) + 1) * accelMult;
+                velocity = (6 * (vel / vDiv) * accelMult) + 1;
             }
             }
          return (velocity * knScale) * Math.Log(inverseTanh(Math.Exp((x - 1) / (knScale * velocity))), Math.E);
@@ -317,7 +317,7 @@ namespace AdaptiveRadialFollow
             {
             if (value is ITabletReport report)
             {
-                velocity = (6 * (vel / vDiv) + 1) * accelMult;
+                velocity = (6 * (vel / vDiv) * accelMult) + 1;
             }
             }
             var e = Math.Exp(x / (knScale * velocity));
@@ -335,7 +335,7 @@ namespace AdaptiveRadialFollow
         {
             if (value is ITabletReport report)
             {
-                double velocity = vel * accelMult;
+                double velocity = vel * Math.Pow(accelMult, Math.Sqrt(radPower));
                 return Math.Max(Math.Min(Math.Pow(velocity / vDiv, radPower), 1), minMult) * Math.Max(rOuter, rInner + 0.0001f);
             }
             else
@@ -345,7 +345,7 @@ namespace AdaptiveRadialFollow
         {
              if (value is ITabletReport report)
             {
-                double velocity = vel * accelMult;
+                double velocity = vel * Math.Pow(accelMult, Math.Sqrt(radPower));
                 return Math.Max(Math.Min(Math.Pow(velocity / vDiv, radPower), 1), minMult) * rInner;
             }
             else
