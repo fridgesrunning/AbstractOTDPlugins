@@ -157,7 +157,7 @@ namespace AdaptiveRadialFollow
 
         [BooleanProperty("Console Logging", ""), DefaultPropertyValue(false), ToolTip
         (
-            "Each report, info will be printed in daemon.\n\n" +
+            "Each report, info will be printed in console.\n\n" +
             "If the rate of prints exceeds report rate, then that is bad and this filter is not working as well as it could be. read the readme\n" +
             "You can use this to make sure that your parameters and thresholds are right.\n\n" +
             "Default value is false"
@@ -166,6 +166,18 @@ namespace AdaptiveRadialFollow
         {
             get => radialCore.ConsoleLogging;
             set { radialCore.ConsoleLogging = value; }
+        }
+
+        [Property("Accel Mult Power"), DefaultPropertyValue(1.0d), ToolTip
+        (
+            "Enable Console Logging above and look at the console. This specific setting affects only radius scaling.\n" +
+            "For identical behavior to v1, this should be the sqrt of radial mult power.\n\n" +
+            "Default value is 1.0\n\n"
+        )]
+        public double AccelMultPower
+        {
+            get => radialCore.AccelMultPower;
+            set { radialCore.AccelMultPower = value; }
         }
 
         public event Action<IDeviceReport> Emit;

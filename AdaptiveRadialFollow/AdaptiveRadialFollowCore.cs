@@ -87,7 +87,7 @@ namespace AdaptiveRadialFollow
         public double RawAccelThreshold
         {
             get { return rawThreshold; }
-            set { rawThreshold = System.Math.Clamp(value, -1000000.0, 0.0f); }
+            set { rawThreshold = System.Math.Clamp(value, -1000000.0f, 0.0f); }
         }
         public double rawThreshold;
 
@@ -97,6 +97,13 @@ namespace AdaptiveRadialFollow
             set { cLog = value; }
         }
         private bool cLog;
+
+        public double AccelMultPower
+        {
+            get { return accPower; }
+            set { accPower = System.Math.Clamp(value, 1.0f, 1000000.0f); }
+        }
+        public double accPower;
 
         public float SampleRadialCurve(IDeviceReport value, float dist) => (float)deltaFn(value, dist, xOffset(value), scaleComp(value));
         public double ResetMs = 1;
@@ -132,7 +139,7 @@ namespace AdaptiveRadialFollow
                 Console.WriteLine(vel);
                 Console.WriteLine("Raw Acceleration:");
                 Console.WriteLine(accel);
-                Console.WriteLine("Accel Mult (this is an additional factor that multiplies velocity, should be close to or 0 on sharp decel, hovering around 1 when neutral, and close to or 2 on sharp accel):");
+                Console.WriteLine("Accel Mult (this is an additional factor that multiplies velocity, should be close to or 0 on sharp decel, hovering around 1 when neutral, and close to or 2 on sharp accel. Only affected by power on radius scaling, so not shown.):");
                 Console.WriteLine(accelMult);
                 Console.WriteLine("Outside Radius:");
                 Console.WriteLine(rOuterAdjusted(value, cursor, rOuter, rInner));
@@ -335,7 +342,7 @@ namespace AdaptiveRadialFollow
         {
             if (value is ITabletReport report)
             {
-                double velocity = vel * Math.Pow(accelMult, Math.Sqrt(radPower));
+                double velocity = vel * Math.Pow(accelMult, accPower);
                 return Math.Max(Math.Min(Math.Pow(velocity / vDiv, radPower), 1), minMult) * Math.Max(rOuter, rInner + 0.0001f);
             }
             else
@@ -345,7 +352,7 @@ namespace AdaptiveRadialFollow
         {
              if (value is ITabletReport report)
             {
-                double velocity = vel * Math.Pow(accelMult, Math.Sqrt(radPower));
+                double velocity = vel * Math.Pow(accelMult, accPower);
                 return Math.Max(Math.Min(Math.Pow(velocity / vDiv, radPower), 1), minMult) * rInner;
             }
             else
