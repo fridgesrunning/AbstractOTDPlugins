@@ -115,8 +115,7 @@ namespace AdaptiveRadialFollow
         public Vector2 Filter(IDeviceReport value, Vector2 target)
         {
             UpdateReports(value);
-           //if (clockTrigger == true & accel / (6 / vDiv) > rawThreshold)
-          //  return cursor;
+           
             Vector2 direction = target - cursor;
             float distToMove = SampleRadialCurve(value, direction.Length());
             direction = Vector2.Normalize(direction);
@@ -155,6 +154,9 @@ namespace AdaptiveRadialFollow
                     Console.WriteLine("Adjusted Soft Knee Scale:");
                     Console.WriteLine(((6 * (vel / vDiv) + 1) * accelMult) * knScale);
                 }
+
+
+                Console.WriteLine(RawAngle(lastLastReport, lastReport, currReport));
                 Console.WriteLine("End of report ----------------------------------------------------");
             }
 
@@ -185,14 +187,6 @@ namespace AdaptiveRadialFollow
 
         public double lerpScale;
 
-//public double clock;
-        
-//public bool clockTrigger;
-
-  //      public double hangThreshold;
-
-   //     public bool hangToggle;
-
         void UpdateReports(IDeviceReport value)
         {
             if (value is ITabletReport report)
@@ -212,46 +206,42 @@ namespace AdaptiveRadialFollow
                 accel = vel - Math.Sqrt(Math.Pow(seconddiff.X, 2) + Math.Pow(seconddiff.Y, 2)) / 100;
 
                 accelMult = Smoothstep(accel, -1 / (6 / vDiv), 0) + Smoothstep(accel, 0, 1 / (6 / vDiv));
-
-             //   if (hangToggle == true)
-             //   {
-
-            //    if ((accel > hangThreshold) & (clockTrigger == false))
-            //    {
-           //      clockTrigger = true;
-            //     clock = 0;
-            //    }
-
-            //    if (clockTrigger == true)
-            //    {
-            //        accelMult = 2;
-           //         clock += 1;
-           //         Console.WriteLine(clock);
-            //        if (clock > 5)
-            //        clockTrigger = false;
-
-         //       }
-           //     }
             }
         }
         
-        //, scaleComp;
-      //  void updateDerivedParams(IDeviceReport value)
-      //  {
-      //      if (knScale > 0.0001f)
-      //      {
-      //          xOffset = getXOffest(value);
-       //         scaleComp = getScaleComp(value);
-       //     } 
-       //     else // Calculating them with functions would cause / by 0
-       //     {
-       //         xOffset = -1;
-      //          scaleComp = 1;
-       //     }
-      //  }
-        
-
         /// Math functions
+        
+        public static double Dot(Vector2 a, Vector2 b)
+        {
+            return a.X * b.X + a.Y * b.Y;
+        }
+        public static double RawAngle(Vector2 vll, Vector2 vl, Vector2 vc)
+        {
+            Vector2 v1 = vll - vc;
+            Vector2 v2 = vl - vc;
+
+            double dotProduct = Dot(v1, v2);
+
+            double mag1 = Math.Sqrt(v1.X * v1.X + v1.Y * v1.Y);
+            double mag2 = Math.Sqrt(v2.X * v2.X + v2.Y * v2.Y);
+        
+            double cosine = Math.Clamp(dotProduct / (mag1 * mag2), -1, 1);
+
+            return Math.Acos(cosine) * (180 / Math.PI);
+        }
+
+        double missedSnapness(double angle, double vel, double accel)
+        {
+            double snapAngle = Smoothstep(angle, 45, 90) - Smoothstep(angle, 90, 135);
+            return 1000000000000;
+
+
+
+
+
+
+
+        }
 
         double kneeFunc(double x) => x switch
         {
@@ -278,7 +268,8 @@ namespace AdaptiveRadialFollow
         {
             x = Math.Clamp(x, 0.0f, 1.0f);
     
-         return new Vector2(
+         return new Vector2
+         (
              cursor.X + (target.X - cursor.X) * x,
              cursor.Y + (target.Y - cursor.Y) * x
          );
@@ -297,10 +288,10 @@ namespace AdaptiveRadialFollow
             }
 
             return knScale switch
-        {
+            {
             > 0.0001f => (knScale * velocity) * kneeFunc(x / (knScale * velocity)) + 1,
             _ => x > 0 ? 1 : 1 + x,
-        };
+            };
         }
         double inverseTanh(double x) => Math.Log((1 + x) / (1 - x), Math.E) / 2;
 
@@ -336,9 +327,7 @@ namespace AdaptiveRadialFollow
 
         double getScaleComp(IDeviceReport value) => derivKneeScaled(value, getXOffest(value));
 
-
-
-        public double rOuterAdjusted(IDeviceReport value, Vector2 cursor, double rOuter, double rInner) ///=> Math.Sqrt((Math.Pow(pos.X / 15200 - cursor.X / 2560, 2)) + (Math.Pow(pos.Y / 8550 - cursor.Y / 1440, 2))) / Math.Sqrt(Math.Pow(cursor.X, 2) + Math.Pow(cursor.Y, 2)) * GridScale * Math.Max(rOuter, rInner + 0.0001f);
+        public double rOuterAdjusted(IDeviceReport value, Vector2 cursor, double rOuter, double rInner)
         {
             if (value is ITabletReport report)
             {
@@ -348,7 +337,8 @@ namespace AdaptiveRadialFollow
             else
             return 0;
         }
-        public double rInnerAdjusted(IDeviceReport value, Vector2 cursor, double rInner) ///=> Math.Sqrt((Math.Pow(pos.X / 15200 - cursor.X / 2560, 2)) + (Math.Pow(pos.Y / 8550 - cursor.Y / 1440, 2))) / Math.Sqrt(Math.Pow(cursor.X, 2) + Math.Pow(cursor.Y, 2)) * GridScale * rInner;
+
+        public double rInnerAdjusted(IDeviceReport value, Vector2 cursor, double rInner)
         {
              if (value is ITabletReport report)
             {
@@ -360,16 +350,6 @@ namespace AdaptiveRadialFollow
             return 0;
             }
         }
-
-
-
-
-
-
-
-
-
-
 
         double leakedFn(IDeviceReport value, double x, double offset, double scaleComp)
         => kneeScaled(value, x + offset) * (1 - leakCoef) + x * leakCoef * scaleComp;
@@ -386,7 +366,6 @@ namespace AdaptiveRadialFollow
         return leakedFn(value, x * (smoothCoef / LowVelocityUnsmooth) / scaleComp, offset, scaleComp);
         }
 
-
         double scaleToOuter(IDeviceReport value, double x, double offset, double scaleComp)
         {
             if (value is ITabletReport report)
@@ -398,7 +377,6 @@ namespace AdaptiveRadialFollow
             return (rOuter - rInner) * smoothedFn(value, x / (rOuter - rInner), offset, scaleComp);
             } 
         }
-        //=> (rOuterAdjusted - rInnerAdjusted) * smoothedFn(x / (rOuterAdjusted - rInnerAdjusted), offset, scaleComp);
 
         double deltaFn(IDeviceReport value, double x, double offset, double scaleComp)
         {
@@ -413,6 +391,5 @@ namespace AdaptiveRadialFollow
 
 
         }
-        //=> x > rInnerAdjusted ? x - scaleToOuter(x - rInnerAdjusted, offset, scaleComp) - rInnerAdjusted : 0;
     }
 }
