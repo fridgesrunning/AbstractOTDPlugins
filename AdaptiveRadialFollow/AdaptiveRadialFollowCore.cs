@@ -155,13 +155,10 @@ namespace AdaptiveRadialFollow
                     Console.WriteLine(((6 * (vel / vDiv) + 1) * accelMult) * knScale);
                 }
 
-
-                Console.WriteLine(RawAngle(lastLastReport, lastReport, currReport));
                 Console.WriteLine("End of report ----------------------------------------------------");
             }
 
             lerpScale = 0;
-
             return cursor;
         }
 
@@ -208,6 +205,15 @@ namespace AdaptiveRadialFollow
                 accelMult = Smoothstep(accel, -1 / (6 / vDiv), 0) + Smoothstep(accel, 0, 1 / (6 / vDiv));
             }
         }
+
+        Vector2 AdjustedTarget(Vector2 target, Vector2 cursor)
+        {
+            double missedsnapness = Smoothstep(angle, 45, 90) - Smoothstep(angle, 90, 135) * ;
+
+
+        
+            
+        }
         
         /// Math functions
         
@@ -227,20 +233,7 @@ namespace AdaptiveRadialFollow
         
             double cosine = Math.Clamp(dotProduct / (mag1 * mag2), -1, 1);
 
-            return Math.Acos(cosine) * (180 / Math.PI);
-        }
-
-        double missedSnapness(double angle, double vel, double accel)
-        {
-            double snapAngle = Smoothstep(angle, 45, 90) - Smoothstep(angle, 90, 135);
-            return 1000000000000;
-
-
-
-
-
-
-
+            return Math.Acos(cosine);
         }
 
         double kneeFunc(double x) => x switch
