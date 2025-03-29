@@ -105,31 +105,45 @@ namespace AdaptiveRadialFollow
         }
         public double accPower;
 
+        public bool secretFeature
+        {
+            get { return secretToggle; }
+            set { secretToggle = value; }
+        }
+        public bool secretToggle;
+
         public float SampleRadialCurve(IDeviceReport value, float dist) => (float)deltaFn(value, dist, xOffset(value), scaleComp(value));
         public double ResetMs = 1;
         public double GridScale = 1;
 
         Vector2 cursor;
+        Vector2 holdCursor;
+        Vector2 lastCursor;
         HPETDeltaStopwatch stopwatch = new HPETDeltaStopwatch(true);
 
         public Vector2 Filter(IDeviceReport value, Vector2 target)
         {
-            UpdateReports(value);
-           
+            UpdateReports(value, target);
+
+            holdCursor = cursor;
+
             Vector2 direction = target - cursor;
             float distToMove = SampleRadialCurve(value, direction.Length());
+
+            if (accel / (6 / vDiv) < rawThreshold)
+            lerpScale = Smootherstep(accel / (6 / vDiv), rawThreshold, rawThreshold - (1 / (6 / vDiv)));
+                
+            if (secretToggle == true)
+            direction = LerpedCursor((float)lerpScale, direction, cursor - lastCursor);
+            
             direction = Vector2.Normalize(direction);
             cursor = cursor + Vector2.Multiply(direction, distToMove);
+            cursor = LerpedCursor((float)lerpScale, cursor, target);
 
             // Catch NaNs and pen redetection
             if (!(float.IsFinite(cursor.X) & float.IsFinite(cursor.Y) & stopwatch.Restart().TotalMilliseconds < 50))
                 cursor = target;
 
-            if (accel / (6 / vDiv) < rawThreshold)
-            {
-                lerpScale = Smootherstep(accel / (6 / vDiv), rawThreshold, rawThreshold - (1 / (6 / vDiv)));
-                cursor = LerpedCursor((float)lerpScale, cursor, target);
-            }
 
             if (cLog == true)
             {
@@ -154,11 +168,11 @@ namespace AdaptiveRadialFollow
                     Console.WriteLine("Adjusted Soft Knee Scale:");
                     Console.WriteLine(((6 * (vel / vDiv) + 1) * accelMult) * knScale);
                 }
-
+    
                 Console.WriteLine("End of report ----------------------------------------------------");
             }
-
             lerpScale = 0;
+            lastCursor = holdCursor;
             return cursor;
         }
 
@@ -184,7 +198,7 @@ namespace AdaptiveRadialFollow
 
         public double lerpScale;
 
-        void UpdateReports(IDeviceReport value)
+        void UpdateReports(IDeviceReport value, Vector2 target)
         {
             if (value is ITabletReport report)
             {
@@ -206,36 +220,9 @@ namespace AdaptiveRadialFollow
             }
         }
 
-        Vector2 AdjustedTarget(Vector2 target, Vector2 cursor)
-        {
-            double missedsnapness = Smoothstep(angle, 45, 90) - Smoothstep(angle, 90, 135) * ;
-
-
-        
-            
-        }
         
         /// Math functions
         
-        public static double Dot(Vector2 a, Vector2 b)
-        {
-            return a.X * b.X + a.Y * b.Y;
-        }
-        public static double RawAngle(Vector2 vll, Vector2 vl, Vector2 vc)
-        {
-            Vector2 v1 = vll - vc;
-            Vector2 v2 = vl - vc;
-
-            double dotProduct = Dot(v1, v2);
-
-            double mag1 = Math.Sqrt(v1.X * v1.X + v1.Y * v1.Y);
-            double mag2 = Math.Sqrt(v2.X * v2.X + v2.Y * v2.Y);
-        
-            double cosine = Math.Clamp(dotProduct / (mag1 * mag2), -1, 1);
-
-            return Math.Acos(cosine);
-        }
-
         double kneeFunc(double x) => x switch
         {
             < -3 => x,
@@ -255,6 +242,12 @@ namespace AdaptiveRadialFollow
             x = Math.Clamp((x - start) / (end - start), 0.0, 1.0);
 
             return x * x * x * (x * (6.0 * x - 15.0) + 10.0);
+        }
+
+        public static double Lerp(double x, double start, double end)
+        {
+            x = Math.Clamp(x, 0, 1);
+            return start + (end - start) * x;
         }
 
         public static Vector2 LerpedCursor(float x, Vector2 cursor, Vector2 target)

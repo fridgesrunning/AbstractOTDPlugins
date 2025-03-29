@@ -180,6 +180,16 @@ namespace AdaptiveRadialFollow
             set { radialCore.AccelMultPower = value; }
         }
 
+        [BooleanProperty("Secret Feature", ""), DefaultPropertyValue(false), ToolTip
+        (
+            "For testing purposes. Effect is small, but potentially unpredictable."
+        )]
+        public bool secretFeature
+        {
+            get => radialCore.secretFeature;
+            set { radialCore.secretFeature = value; }
+        }
+
         public event Action<IDeviceReport> Emit;
 
         public void Consume(IDeviceReport value)
