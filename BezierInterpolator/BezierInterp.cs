@@ -57,7 +57,6 @@ namespace BezierInterpolator
         {
             float alpha = (float)(reportStopwatch.Elapsed.TotalSeconds * Frequency / reportMsAvg);
             alpha = (float)Math.Pow(alpha, Math.Pow(2, -1 * Math.Max(accel / (vDiv / 2), 0)));
-            Console.WriteLine(Math.Pow(2, -1 * Math.Max(accel / (vDiv / 2), 0)));
 
             if (State is ITiltReport tiltReport)
             {
