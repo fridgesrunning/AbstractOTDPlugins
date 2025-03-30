@@ -134,7 +134,7 @@ namespace AdaptiveRadialFollow
             lerpScale = Smootherstep(accel / (6 / vDiv), rawThreshold, rawThreshold - (1 / (6 / vDiv)));
                 
             if (secretToggle == true)
-            direction = LerpedCursor((float)lerpScale, direction, cursor - lastCursor);
+            direction = LerpedCursor((float)lerpScale, direction, direction + (cursor - lastCursor));
             
             direction = Vector2.Normalize(direction);
             cursor = cursor + Vector2.Multiply(direction, distToMove);
@@ -176,7 +176,7 @@ namespace AdaptiveRadialFollow
             return cursor;
         }
 
-        double xOffset(IDeviceReport value) => getXOffest(value);
+        double xOffset(IDeviceReport value) => getXOffset(value);
         
         double scaleComp(IDeviceReport value) => getScaleComp(value);
 
@@ -309,9 +309,9 @@ namespace AdaptiveRadialFollow
             return (e - e * (tanh * tanh)) / tanh;
         }
 
-        double getXOffest(IDeviceReport value) => inverseKneeScaled(value, 0);
+        double getXOffset(IDeviceReport value) => inverseKneeScaled(value, 0);
 
-        double getScaleComp(IDeviceReport value) => derivKneeScaled(value, getXOffest(value));
+        double getScaleComp(IDeviceReport value) => derivKneeScaled(value, getXOffset(value));
 
         public double rOuterAdjusted(IDeviceReport value, Vector2 cursor, double rOuter, double rInner)
         {
