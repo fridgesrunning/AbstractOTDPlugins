@@ -105,7 +105,7 @@ namespace AdaptiveRadialFollow
         }
         public double accPower;
 
-        public bool secretFeature
+        public bool SnapCompensation
         {
             get { return secretToggle; }
             set { secretToggle = value; }

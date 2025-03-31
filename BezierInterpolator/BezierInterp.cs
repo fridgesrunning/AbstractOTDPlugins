@@ -56,7 +56,7 @@ namespace BezierInterpolator
         protected override void UpdateState()
         {
             float alpha = (float)(reportStopwatch.Elapsed.TotalSeconds * Frequency / reportMsAvg);
-            alpha = (float)Math.Pow(alpha, Math.Pow(2, -1 * Math.Max(accel / (vDiv / 2), 0)));
+            alpha = (float)Math.Pow(alpha, Math.Pow(2, -1 * Math.Max(accel / (vDiv / 4), 0)));
 
             if (State is ITiltReport tiltReport)
             {
@@ -98,13 +98,15 @@ namespace BezierInterpolator
                 emaTarget = vec2IsFinite(emaTarget) ? emaTarget : report.Position;
                 emaTarget += emaWeight * (report.Position - emaTarget);
 
+                velocity = (float)Math.Sqrt(Math.Pow(emaTarget.X - lastEmaTarget.X, 2) + Math.Pow(emaTarget.Y - lastEmaTarget.Y, 2));
+                accel = velocity - (float)Math.Sqrt(Math.Pow(lastEmaTarget.X - lastLastEmaTarget.X, 2) + Math.Pow(lastEmaTarget.Y - lastLastEmaTarget.Y, 2));
+
                 controlPoint = controlPointNext;
                 controlPointNext = new Vector3(emaTarget, report.Pressure);
 
                 previousTarget = target;
-                target = Vector3.Lerp(controlPoint, controlPointNext, 0.5f);
-                velocity = (float)Math.Sqrt(Math.Pow(emaTarget.X - lastEmaTarget.X, 2) + Math.Pow(emaTarget.Y - lastEmaTarget.Y, 2));
-                accel = velocity - (float)Math.Sqrt(Math.Pow(lastEmaTarget.X - lastLastEmaTarget.X, 2) + Math.Pow(lastEmaTarget.Y - lastLastEmaTarget.Y, 2));
+                target = Vector3.Lerp(controlPoint, controlPointNext, (float)Math.Pow(0.5, Math.Pow(2, -1 * Math.Max(accel / (vDiv / 4), 0))));
+                
             }
             else OnEmit();
         }
