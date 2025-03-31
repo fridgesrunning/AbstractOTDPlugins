@@ -5,12 +5,12 @@ using OpenTabletDriver.Plugin.Output;
 using OpenTabletDriver.Plugin.Tablet;
 using OpenTabletDriver.Plugin.Timing;
 
-namespace BezierInterpolator
+namespace AdaptiveBezierInterpolator
 {
-    [PluginName("BezierInterpolator")]
-    public class BezierInterp : AsyncPositionedPipelineElement<IDeviceReport>
+    [PluginName("AdaptiveBezierInterpolator")]
+    public class AdaptiveBezierInterp : AsyncPositionedPipelineElement<IDeviceReport>
     {
-        public BezierInterp() : base()
+        public AdaptiveBezierInterp() : base()
         {
         }
 
