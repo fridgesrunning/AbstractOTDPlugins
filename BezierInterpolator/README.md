@@ -1,0 +1,1 @@
+It's just bezier interp but becomes more aggressive with accel. Supposed to go after ARF, all instructions there apply
