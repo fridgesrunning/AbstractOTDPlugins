@@ -93,11 +93,11 @@ namespace AdaptiveRadialFollow
             set { radialCore.VelocityDivisor = value; }
         }
 
-        [Property("Minimum Radius Multiplier"), DefaultPropertyValue(0.05d), ToolTip
+        [Property("Minimum Radius Multiplier"), DefaultPropertyValue(0.025d), ToolTip
         (
             "As radius scales by velocity, it might be useful for there to still be some radius even if the velocity is low.\n\n" +
             "Possible value range is 0..1, 0 means the radius will become small as to be effectively 0, 1 means no velocity scaling which I don't recommend.\n\n" +
-            "Default value is 0.05"
+            "Default value is 0.025"
         )]
         public double MinimumRadiusMultiplier
         {
