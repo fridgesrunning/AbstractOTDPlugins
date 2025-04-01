@@ -29,6 +29,8 @@ uses
 
 vanilla: snaps immensely while providing minimal antichatter level smoothing when you're not trying to snap: you can make inner radius close to or equal to outer radius
 
+if you use above ^ then i recommend trying adaptive bezier interpolator for slightly less delay
+
 relax: hangs where you snap, but still preserves cursor path coverage: inner radius can be small while outer radius is large
 
 common problems
@@ -40,3 +42,4 @@ cursor choppy on flow? increase radial mult power or velocity divisor
 if you're stuttering, try using process lasso to make otd work on higher numbered cpu cores and force realtime priority
 
 you can mess with the code and run build.ps1 on that folder if you want i just use dotnet build BUT its a noob guide
+
