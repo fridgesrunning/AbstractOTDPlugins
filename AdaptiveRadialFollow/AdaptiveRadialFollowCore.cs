@@ -107,10 +107,10 @@ namespace AdaptiveRadialFollow
 
         public bool SnapCompensation
         {
-            get { return secretToggle; }
-            set { secretToggle = value; }
+            get { return sToggle; }
+            set { sToggle = value; }
         }
-        public bool secretToggle;
+        public bool sToggle;
 
         public float SampleRadialCurve(IDeviceReport value, float dist) => (float)deltaFn(value, dist, xOffset(value), scaleComp(value));
         public double ResetMs = 1;
@@ -133,7 +133,7 @@ namespace AdaptiveRadialFollow
             if (accel / (6 / vDiv) < rawThreshold)
             lerpScale = Smootherstep(accel / (6 / vDiv), rawThreshold, rawThreshold - (1 / (6 / vDiv)));
                 
-            if (secretToggle == true)
+            if (sToggle == true)
             direction = LerpedCursor((float)lerpScale, direction, direction + (cursor - lastCursor));
             
             direction = Vector2.Normalize(direction);

@@ -105,12 +105,12 @@ namespace AdaptiveRadialFollow
             set { radialCore.MinimumRadiusMultiplier = value; }
         }
 
-        [Property("Radial Mult Power"), DefaultPropertyValue(3.0d), ToolTip
+        [Property("Radial Mult Power"), DefaultPropertyValue(9.0d), ToolTip
         (
             "Velocity / the velocity divisor returns a radial multiplier, which is raised to this power.\n\n" +
-            "Possible value range is 1 and up, 1 means radius will scale linearly with velocity up to 1 * radius, 2 means it will be squared, 3 means it will be cubed, and so on.\n\n" +
-            "3 is generally good for both supporting decently sized radii for extreme snap and keeping radii low when doing anything but jumping at the same time.\n\n" +
-            "Default value is 3.0"
+            "Possible value range is 1 and up, 1 means radius will scale linearly with velocity up to 1 * radius, 2 means it will be squared, 3 means it will be cubed, and so on.\n" +
+            "Higher values get closer to an instant shift once a threshold is crossed - ideal for larger inside radii.\n" + 
+            "Default value is 9.0"
         )]
         public double RadialMultPower
         {
@@ -121,7 +121,7 @@ namespace AdaptiveRadialFollow
         [Property("Minimum Smoothing Divisor"), DefaultPropertyValue(5.0d), ToolTip
         (
             "As velocity along with an acceleration factor becomes lower than max radius threshold,\n" +
-            "initial smoothing coefficient approaches being divided by this number * some constant. I checked in console and it's more complex than that but you don't have to worry about it\n\n" +
+            "initial smoothing coefficient approaches being divided by this number * some constant. It might be more complex than that but you don't have to worry about it.\n\n" +
             "Possible value range is 2 and up.\n\n" +
             "Default value is 5.0"
         )]
@@ -146,7 +146,7 @@ namespace AdaptiveRadialFollow
 
         [Property("Raw Accel Threshold"), DefaultPropertyValue(-0.15d), ToolTip
         (
-            "If decel is sharp enough, then cursor starts to approach snapping to raw report.\n\n" +
+            "If decel (negative value) is sharp enough, then cursor starts to approach snapping to raw report. Velocity divisor adjusts for this.\n\n" +
             "Default value is -0.15\n\n"
         )]
         public double RawAccelThreshold
@@ -168,11 +168,11 @@ namespace AdaptiveRadialFollow
             set { radialCore.ConsoleLogging = value; }
         }
 
-        [Property("Accel Mult Power"), DefaultPropertyValue(1.0d), ToolTip
+        [Property("Accel Mult Power"), DefaultPropertyValue(3.0d), ToolTip
         (
             "Enable Console Logging above and look at the console. This specific setting affects only radius scaling.\n" +
             "For identical behavior to v1, this should be the sqrt of radial mult power.\n\n" +
-            "Default value is 1.0\n\n"
+            "Default value is 3.0\n\n"
         )]
         public double AccelMultPower
         {
@@ -182,9 +182,9 @@ namespace AdaptiveRadialFollow
 
         [BooleanProperty("Snap Compensation", ""), DefaultPropertyValue(false), ToolTip
         (
-            "For testing purposes. Effect is small, but probably unpredictable and only explainable by source code."
+            "Effect only explainable in source code."
         )]
-        public bool secretFeature
+        public bool SnapCompensation
         {
             get => radialCore.SnapCompensation;
             set { radialCore.SnapCompensation = value; }
