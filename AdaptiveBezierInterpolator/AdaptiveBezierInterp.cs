@@ -69,7 +69,7 @@ namespace AdaptiveBezierInterpolator
                 var lerp1 = Vector3.Lerp(previousTarget, controlPoint, alpha);
                 var lerp2 = Vector3.Lerp(controlPoint, target, alpha);
                 var res = Vector3.Lerp(lerp1, lerp2, alpha);
-                res = Vector3.Lerp(res, controlPointNext, (float)Math.Pow(Math.Pow(0.5, 2), Math.Pow(2, -1 * Math.Max(accel / vDiv, 1))));
+                res = Vector3.Lerp(res, controlPointNext, (float)Math.Min(velocity / vDiv, Math.Pow(Math.Pow(0.5, 2), Math.Pow(2, -1 * Math.Max(accel / vDiv, 1)))));
                 report.Position = new Vector2(res.X, res.Y);
                 report.Pressure = report.Pressure == 0 ? 0 : (uint)(res.Z);
                 State = report;
