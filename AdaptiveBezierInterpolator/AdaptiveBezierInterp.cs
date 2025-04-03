@@ -53,6 +53,17 @@ namespace AdaptiveBezierInterpolator
         }
         private float vDiv;
 
+        [Property("Aggressiveness"), DefaultPropertyValue(0.75f), ToolTip
+        (
+            "For testing purposes. Leave it at 0.75 unless you know what you're doing (read source code)"
+        )]
+        public float Aggressiveness
+        {
+            get { return lerpMax; }
+            set { lerpMax = System.Math.Clamp(value, 0.0f, 1.0f); }
+        }
+        private float lerpMax;
+
         protected override void UpdateState()
         {
             float alpha = (float)(reportStopwatch.Elapsed.TotalSeconds * Frequency / reportMsAvg);
@@ -69,7 +80,7 @@ namespace AdaptiveBezierInterpolator
                 var lerp1 = Vector3.Lerp(previousTarget, controlPoint, alpha);
                 var lerp2 = Vector3.Lerp(controlPoint, target, alpha);
                 var res = Vector3.Lerp(lerp1, lerp2, alpha);
-                res = Vector3.Lerp(res, controlPointNext, (float)Math.Min(Math.Clamp(velocity / vDiv, 0, 1), Math.Pow(Math.Pow(0.5, 2), Math.Pow(2, -1 * Math.Max(accel / vDiv, 1)))));
+                res = Vector3.Lerp(res, controlPointNext, (float)Math.Clamp(accel / vDiv, 0, lerpMax));
                 report.Position = new Vector2(res.X, res.Y);
                 report.Pressure = report.Pressure == 0 ? 0 : (uint)(res.Z);
                 State = report;
