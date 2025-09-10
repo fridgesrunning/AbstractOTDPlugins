@@ -1,3 +1,5 @@
+Reinstall after September 10, 2025
+
 massive props to abstractqbit for making the original radial follow and making bezier interpolator, which i would recommend using with this over temporal resampler, because the cursor acts weird with temporal.
 
 how to use for noobs

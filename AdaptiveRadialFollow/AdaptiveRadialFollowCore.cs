@@ -87,7 +87,7 @@ namespace AdaptiveRadialFollow
         public double RawAccelThreshold
         {
             get { return rawThreshold; }
-            set { rawThreshold = System.Math.Clamp(value, -1000000.0f, 0.0f); }
+            set { rawThreshold = System.Math.Clamp(value, -1000000.0f, 1000.0f); }
         }
         public double rawThreshold;
 

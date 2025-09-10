@@ -70,7 +70,7 @@ namespace AdaptiveRadialFollow
 
         [Property("Smoothing Leak Coefficient"), DefaultPropertyValue(0.0d), ToolTip
         (
-            "Smoothing leak coefficient allows for input smooting to continue past outer radius at a reduced rate.\n\n" +
+            "Smoothing leak coefficient allows for input smoothing to continue past outer radius at a reduced rate.\n\n" +
             "Possible value range is 0..1, 0 means no smoothing past outer radius, 1 means 100% of the smoothing gets through.\n\n" +
             "Note that this probably shouldn't be above 0.\n\n" +
             "Default value is 0.0"
@@ -146,8 +146,10 @@ namespace AdaptiveRadialFollow
 
         [Property("Raw Accel Threshold"), DefaultPropertyValue(-0.15d), ToolTip
         (
-            "If decel (negative value) is sharp enough, then cursor starts to approach snapping to raw report. Velocity divisor adjusts for this.\n\n" +
-            "Default value is -0.15\n\n"
+            "If decel (negative value) is sharp enough, then cursor starts to approach snapping to raw report. Velocity divisor adjusts for this.\n" +
+            "You can put this above 0 if you feel like it, but be aware that this overrides other processing.\n" + 
+            "Look in the console for the Sharp Decel Lerp value (read the option below) if you want to do that.\n\n" +
+            "Default value is -0.15"
         )]
         public double RawAccelThreshold
         {
@@ -168,11 +170,11 @@ namespace AdaptiveRadialFollow
             set { radialCore.ConsoleLogging = value; }
         }
 
-        [Property("Accel Mult Power"), DefaultPropertyValue(3.0d), ToolTip
+        [Property("Accel Mult Power"), DefaultPropertyValue(7.0d), ToolTip
         (
             "Enable Console Logging above and look at the console. This specific setting affects only radius scaling.\n" +
             "For identical behavior to v1, this should be the sqrt of radial mult power.\n\n" +
-            "Default value is 3.0\n\n"
+            "Default value is 3.0"
         )]
         public double AccelMultPower
         {
@@ -182,7 +184,7 @@ namespace AdaptiveRadialFollow
 
         [BooleanProperty("Snap Compensation", ""), DefaultPropertyValue(false), ToolTip
         (
-            "Effect only explainable in source code."
+            "Assumes you are impossibly unlucky all the time and the furthest extent of your aim's reach was timed between tablet reports. Leave this alone."
         )]
         public bool SnapCompensation
         {
