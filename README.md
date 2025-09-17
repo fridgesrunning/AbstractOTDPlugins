@@ -1,5 +1,5 @@
-# AbstractOTDPlugins [![Total Download Count](https://img.shields.io/github/downloads/AbstractQbit/AbstractOTDPlugins/total.svg)](https://github.com/AbstractQbit/AbstractOTDPlugins/releases)
-A set of plugins for [OpenTabletDriver](https://github.com/OpenTabletDriver/OpenTabletDriver).
+# AbstractOTDPlugins [![Total Download Count](https://img.shields.io/github/downloads/fridgesrunning/AbstractOTDPlugins/total.svg)](https://github.com/fridgesrunning/AbstractOTDPlugins/releases)
+Plugins originally made by AbstractQBit for[OpenTabletDriver](https://github.com/OpenTabletDriver/OpenTabletDriver), modified for game use.
 
 ## [Adaptive Radial Follow Smoothing](AdaptiveRadialFollow/README.md)
 Hello Bro -- go to releases >>>>>
