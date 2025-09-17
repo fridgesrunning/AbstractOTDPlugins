@@ -161,7 +161,7 @@ namespace AdaptiveRadialFollow
        //     lerpScale = 1;
 
             if ((aToggle == true) && (indexFactor - lastIndexFactor > holdVel))
-            lerpScale = Math.Max(lerpScale, Smootherstep(indexFactor - lastIndexFactor, holdVel, holdVel - (1 / (6 / rawv))));
+            lerpScale = Math.Max(lerpScale, Smootherstep(indexFactor - lastIndexFactor, holdVel, holdVel + (1 / (6 / rawv))));
                 
             if (sToggle == true)
             direction = LerpedCursor((float)lerpScale, direction, direction + (cursor - lastCursor));
@@ -311,7 +311,7 @@ namespace AdaptiveRadialFollow
         void ExperimentalBehavior()
         {
          //   if (((vel + lastVel) / 2 > rawv) || (accel > 0 & jerk > 0 & snap > 0) || (indexFactor > Math.Max(10 / (6 / rawv), angidx * vel)))
-            if (((vel + lastVel) / 2 > rawv) || 
+            if ((vel > rawv & lastVel > rawv) || 
             (accel > (1 / (6 / rawv)) & jerk > (1 / (6 / rawv)) & snap > (1 / (6 / rawv))) ||
             (indexFactor > Math.Max(1 / (6 / rawv), angidx * vel)))
             {
