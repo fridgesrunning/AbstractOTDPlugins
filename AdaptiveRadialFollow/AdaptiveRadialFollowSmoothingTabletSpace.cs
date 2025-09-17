@@ -147,7 +147,7 @@ namespace AdaptiveRadialFollow
         [Property("Raw Accel Threshold"), DefaultPropertyValue(-0.15d), ToolTip
         (
             "If decel (negative value) is sharp enough, then cursor starts to approach snapping to raw report. Velocity divisor adjusts for this.\n" +
-            "You can put this above 0 if you feel like it, but be aware that this overrides other processing.\n" + 
+            "You can put this above 0 if you feel like it, but be aware that this overrides most other processing.\n" + 
             "Look in the console for the Sharp Decel Lerp value (read the option below) if you want to do that.\n\n" +
             "Default value is -0.15"
         )]
@@ -172,9 +172,8 @@ namespace AdaptiveRadialFollow
 
         [Property("Accel Mult Power"), DefaultPropertyValue(7.0d), ToolTip
         (
-            "Enable Console Logging above and look at the console. This specific setting affects only radius scaling.\n" +
-            "For identical behavior to v1, this should be the sqrt of radial mult power.\n\n" +
-            "Default value is 3.0"
+            "Enable Console Logging above and look at the console. This specific setting affects only radius scaling.\n\n" +
+            "Default value is 7.0"
         )]
         public double AccelMultPower
         {
@@ -190,6 +189,38 @@ namespace AdaptiveRadialFollow
         {
             get => radialCore.SnapCompensation;
             set { radialCore.SnapCompensation = value; }
+        }
+
+        [BooleanProperty("2.0 experimental behavior (below options)", ""), DefaultPropertyValue(false), ToolTip
+        (
+            "Enables the options below. You should know what you're doing."
+        )]
+        public bool Advanced
+        {
+            get => radialCore.Advanced;
+            set { radialCore.Advanced = value; }
+        }
+
+        [Property("Raw Velocity Threshold"), DefaultPropertyValue(5.0d), ToolTip
+        (
+            "Regardless of acceleration, being above this velocity for 2 consecutive reports will override and max out radius.\n" +
+            "Only active if experimental behavior is enabled."
+        )]
+        public double rvt
+        {
+            get => radialCore.rvt;
+            set { radialCore.rvt = value; }
+        }
+
+        [Property("Angle Index"), DefaultPropertyValue(1.5d), ToolTip
+        (
+            "Controls angle index confidence.\n" +
+            "Only active if experimental behavior is enabled."
+        )]
+        public double aidx
+        {
+            get => radialCore.aidx;
+            set { radialCore.aidx = value; }
         }
 
         public event Action<IDeviceReport> Emit;

@@ -112,6 +112,27 @@ namespace AdaptiveRadialFollow
         }
         public bool sToggle;
 
+        public bool Advanced
+        {
+            get { return aToggle; }
+            set { aToggle = value; }
+        }
+        public bool aToggle;
+
+        public double rvt
+        {
+            get { return rawv; }
+            set { rawv = value; }
+        }
+        public double rawv;
+
+        public double aidx
+        {
+            get { return angidx; }
+            set { angidx = value; }
+        }
+        public double angidx;
+
         public float SampleRadialCurve(IDeviceReport value, float dist) => (float)deltaFn(value, dist, xOffset(value), scaleComp(value));
         public double ResetMs = 1;
         public double GridScale = 1;
@@ -125,6 +146,9 @@ namespace AdaptiveRadialFollow
         {
             UpdateReports(value, target);
 
+            if (aToggle == true)
+            ExperimentalBehavior();
+
             holdCursor = cursor;
 
             Vector2 direction = target - cursor;
@@ -132,6 +156,12 @@ namespace AdaptiveRadialFollow
 
             if (accel / (6 / vDiv) < rawThreshold)
             lerpScale = Smootherstep(accel / (6 / vDiv), rawThreshold, rawThreshold - (1 / (6 / vDiv)));
+
+      //      if ((aToggle == true) && (holdVel < rawv / 10))
+       //     lerpScale = 1;
+
+            if ((aToggle == true) && (indexFactor - lastIndexFactor > holdVel))
+            lerpScale = Math.Max(lerpScale, Smootherstep(indexFactor - lastIndexFactor, holdVel, holdVel - (1 / (6 / rawv))));
                 
             if (sToggle == true)
             direction = LerpedCursor((float)lerpScale, direction, direction + (cursor - lastCursor));
@@ -173,6 +203,8 @@ namespace AdaptiveRadialFollow
             }
             lerpScale = 0;
             lastCursor = holdCursor;
+            if (aToggle == true)
+            AdvancedReset();
             return cursor;
         }
 
@@ -180,6 +212,8 @@ namespace AdaptiveRadialFollow
         
         double scaleComp(IDeviceReport value) => getScaleComp(value);
 
+        public Vector2 last3Report;
+        
         public Vector2 lastLastReport;
 
         public Vector2 lastReport;
@@ -190,18 +224,42 @@ namespace AdaptiveRadialFollow
 
         public Vector2 seconddiff;
 
-        public double accel;
+        public Vector2 thirddiff;
 
         public double vel;
+
+        public double holdVel;
+
+        public double lastVel;
+
+        public double lastAccel;
+
+        public double accel;
+
+        public double lastJerk;
+
+        public double jerk;
+
+        public double snap;
 
         public double accelMult;
 
         public double lerpScale;
 
+        public Vector2 angleIndexPoint;
+
+        public double lastIndexFactor;
+
+        public double indexFactor;
+
+        public double angleIndex;
+
         void UpdateReports(IDeviceReport value, Vector2 target)
         {
             if (value is ITabletReport report)
             {
+                last3Report = lastLastReport;
+
                 lastLastReport = lastReport;
 
                 lastReport = currReport;
@@ -212,14 +270,67 @@ namespace AdaptiveRadialFollow
 
                 seconddiff = lastReport - lastLastReport;
 
+                thirddiff = lastLastReport - last3Report;
+
+                lastVel = vel;
+
                 vel =  Math.Sqrt(Math.Pow(diff.X, 2) + Math.Pow(diff.Y, 2)) / 100;
+
+                holdVel = vel;
+
+                lastAccel = accel;
 
                 accel = vel - Math.Sqrt(Math.Pow(seconddiff.X, 2) + Math.Pow(seconddiff.Y, 2)) / 100;
 
+                lastJerk = jerk;
+
+                jerk = accel - lastAccel;
+
+                snap = jerk - lastJerk;
+
+                angleIndexPoint = 2 * diff - seconddiff - thirddiff;
+
+                lastIndexFactor = indexFactor;
+
+                indexFactor = Math.Sqrt(Math.Pow(angleIndexPoint.X, 2) + Math.Pow(angleIndexPoint.Y, 2)) / 100;
+
                 accelMult = Smoothstep(accel, -1 / (6 / vDiv), 0) + Smoothstep(accel, 0, 1 / (6 / vDiv));
+
+            //    Console.WriteLine(vel);
+            //    Console.WriteLine(accel);
+            //    Console.WriteLine(jerk);
+            //    Console.WriteLine(snap);
+            //    Console.WriteLine("-----------");
+            //    Console.WriteLine(angleIndex);
+            //    Console.WriteLine(angleIndex - lastIndex);
+            //    Console.WriteLine(rOuterAdjusted(value, cursor, rOuter, rInner));
+            //    Console.WriteLine("-------------------------------------------");
             }
         }
 
+        void ExperimentalBehavior()
+        {
+         //   if (((vel + lastVel) / 2 > rawv) || (accel > 0 & jerk > 0 & snap > 0) || (indexFactor > Math.Max(10 / (6 / rawv), angidx * vel)))
+            if (((vel + lastVel) / 2 > rawv) || 
+            (accel > (1 / (6 / rawv)) & jerk > (1 / (6 / rawv)) & snap > (1 / (6 / rawv))) ||
+            (indexFactor > Math.Max(1 / (6 / rawv), angidx * vel)))
+            {
+                vel *= 10 * vDiv;
+                accelMult = 2;
+            }
+
+
+
+
+
+
+        }
+
+        void AdvancedReset()
+        {
+            vel = Math.Sqrt(Math.Pow(diff.X, 2) + Math.Pow(diff.Y, 2)) / 100;
+            accel = vel - Math.Sqrt(Math.Pow(seconddiff.X, 2) + Math.Pow(seconddiff.Y, 2)) / 100;
+        }
         
         /// Math functions
         
