@@ -93,7 +93,7 @@ namespace AdaptiveRadialFollow
             set { radialCore.VelocityDivisor = value; }
         }
 
-        [Property("Minimum Radius Multiplier"), DefaultPropertyValue(0.025d), ToolTip
+        [Property("Minimum Radius Multiplier"), DefaultPropertyValue(0.0d), ToolTip
         (
             "As radius scales by velocity, it might be useful for there to still be some radius even if the velocity is low.\n\n" +
             "Possible value range is 0..1, 0 means the radius will become small as to be effectively 0, 1 means no velocity scaling which I don't recommend.\n\n" +
@@ -118,7 +118,7 @@ namespace AdaptiveRadialFollow
             set { radialCore.RadialMultPower = value; }
         }
 
-        [Property("Minimum Smoothing Divisor"), DefaultPropertyValue(5.0d), ToolTip
+        [Property("Minimum Smoothing Divisor"), DefaultPropertyValue(10.0d), ToolTip
         (
             "As velocity along with an acceleration factor becomes lower than max radius threshold,\n" +
             "initial smoothing coefficient approaches being divided by this number * some constant. It might be more complex than that but you don't have to worry about it.\n\n" +
