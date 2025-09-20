@@ -208,6 +208,8 @@ namespace AdaptiveRadialFollow
             return cursor;
         }
 
+
+            // Stats from reports
         void UpdateReports(IDeviceReport value, Vector2 target)
         {
             if (value is ITabletReport report)
@@ -257,9 +259,52 @@ namespace AdaptiveRadialFollow
             // A bunch of requirements where one can be met to do something funny.,
         void ExperimentalBehavior()
         {
+
+            sinceSnap += 1;
+            if ((Math.Abs(indexFactor) > vel * 2 | (accel / vel > 0.35)) && (vel / rawv > 0.25))
+            {
+                Console.WriteLine("snapping?");
+                Console.WriteLine(accel / vel);
+                sinceSnap = 0;
+            }
+
+            last9Vel = last8Vel;
+
+            last8Vel = last7Vel;
+
+            last7Vel = last6Vel;
+
+            last6Vel = last5Vel;
+
+            last5Vel = last4Vel;
+
+            last4Vel = last3Vel;
+
+            last3Vel = last2Vel;
+
+            last2Vel = lastVel;
+
+            spinCheck = Math.Clamp(Math.Pow(vel / rawv, 10), 0, 1) +
+                        Math.Clamp(Math.Pow(lastVel / rawv, 10), 0, 1) +
+                        Math.Clamp(Math.Pow(last2Vel / rawv, 10), 0, 1) +
+                        Math.Clamp(Math.Pow(last3Vel / rawv, 10), 0, 1) +
+                        Math.Clamp(Math.Pow(last4Vel / rawv, 10), 0, 1) +
+                        Math.Clamp(Math.Pow(last5Vel / rawv, 10), 0, 1) +
+                        Math.Clamp(Math.Pow(last6Vel / rawv, 10), 0, 1) +
+                        Math.Clamp(Math.Pow(last7Vel / rawv, 10), 0, 1) +
+                        Math.Clamp(Math.Pow(last8Vel / rawv, 10), 0, 1) +
+                        Math.Clamp(Math.Pow(last9Vel / rawv, 10), 0, 1);
+
+            if ((spinCheck > 8) && sinceSnap > 30)
+            {
+                Console.WriteLine("spinning?");
+                vel = 0;
+                accel = -10 * rawThreshold;
+            }
+
             if ((vel > rawv & lastVel > rawv) || 
-            (accel > (1 / (6 / rawv)) & jerk > (1 / (6 / rawv)) & snap > (1 / (6 / rawv))) ||
-            (indexFactor > Math.Max(1 / (6 / rawv), angidx * vel)))
+                (accel > (1 / (6 / rawv)) & jerk > (1 / (6 / rawv)) & snap > (1 / (6 / rawv))) ||
+                (indexFactor > Math.Max(1 / (6 / rawv), angidx * vel)))
             {
                 vel *= 10 * vDiv;
                 accelMult = 2;
@@ -461,6 +506,24 @@ namespace AdaptiveRadialFollow
 
         public double lastVel;
 
+        public double last2Vel;
+
+        public double last3Vel;
+
+        public double last4Vel;
+
+        public double last5Vel;
+
+        public double last6Vel;
+
+        public double last7Vel;
+
+        public double last8Vel;
+
+        public double last9Vel;
+
+        public double spinCheck;
+
         public double lastAccel;
 
         public double accel;
@@ -482,5 +545,7 @@ namespace AdaptiveRadialFollow
         public double indexFactor;
 
         public double angleIndex;
+
+        public double sinceSnap;
     }
 }
