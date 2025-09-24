@@ -263,7 +263,7 @@ namespace AdaptiveRadialFollow
             sinceSnap += 1;
             if ((Math.Abs(indexFactor) > vel * 2 | (accel / vel > 0.35)) && (vel / rawv > 0.25))
             {
-                Console.WriteLine("snapping?");
+            //    Console.WriteLine("snapping?");
                 Console.WriteLine(accel / vel);
                 sinceSnap = 0;
             }
@@ -297,7 +297,7 @@ namespace AdaptiveRadialFollow
 
             if ((spinCheck > 8) && sinceSnap > 30)
             {
-                Console.WriteLine("spinning?");
+            //    Console.WriteLine("spinning?");
                 vel = 0;
                 accel = -10 * rawThreshold;
             }
