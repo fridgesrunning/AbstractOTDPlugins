@@ -133,6 +133,13 @@ namespace AdaptiveRadialFollow
         }
         public double angidx;
 
+        public bool xlerp
+        {
+            get { return explerp; }
+            set { explerp = value; }
+        }
+        public bool explerp;
+
         public float SampleRadialCurve(IDeviceReport value, float dist) => (float)deltaFn(value, dist, xOffset(value), scaleComp(value));
         public double ResetMs = 1;
         public double GridScale = 1;
@@ -155,10 +162,10 @@ namespace AdaptiveRadialFollow
             if (accel / (6 / vDiv) < rawThreshold)
             lerpScale = Smootherstep(accel / (6 / vDiv), rawThreshold, rawThreshold - (1 / (6 / vDiv)));
 
-            if ((aToggle == true) && (indexFactor - lastIndexFactor > holdVel))
-            lerpScale = Math.Max(lerpScale, Smootherstep(indexFactor - lastIndexFactor, holdVel, holdVel + (1 / (6 / rawv))));
+            if ((aToggle == true) && (indexFactor - lastIndexFactor > (holdVel * 3.5)) && (explerp == true))
+            lerpScale = Math.Max(lerpScale, Smootherstep(indexFactor - lastIndexFactor, (holdVel * 3.5), (holdVel * 3.5) + (1 / (6 / rawv))));
                 
-                // Snap Compensation - a bad attempt to go in the middle if it thinks you should have. I don't even know if it works.
+                // Snap Compensation - a bad attempt to go in the middle if it thinks you should have, but it does every time. I don't even know if it works.
             if (sToggle == true)
             direction = LerpedCursor((float)lerpScale, direction, direction + (cursor - lastCursor));
             
@@ -175,7 +182,7 @@ namespace AdaptiveRadialFollow
             {
                 Console.WriteLine("Start of report ----------------------------------------------------");
                 Console.WriteLine("Raw Velocity:");
-                Console.WriteLine(vel);
+                Console.WriteLine(holdVel);
                 Console.WriteLine("Raw Acceleration:");
                 Console.WriteLine(accel);
                 Console.WriteLine("Accel Mult (this is an additional factor that multiplies velocity, should be close to or 0 on sharp decel, hovering around 1 when neutral, and close to or 2 on sharp accel. Only affected by power on radius scaling, so not shown.):");
@@ -193,6 +200,17 @@ namespace AdaptiveRadialFollow
                 {
                     Console.WriteLine("Adjusted Soft Knee Scale:");
                     Console.WriteLine(((6 * (vel / vDiv) + 1) * accelMult) * knScale);
+                }
+
+                if (aToggle == true)
+                {
+                    Console.WriteLine("A bunch of random numbers...");
+                    Console.WriteLine(jerk);
+                    Console.WriteLine(snap);
+                    Console.WriteLine(indexFactor);
+                    Console.WriteLine((indexFactor - lastIndexFactor) / holdVel);
+                    Console.WriteLine(spinCheck);
+                    Console.WriteLine(sinceSnap);
                 }
     
                 Console.WriteLine("End of report ----------------------------------------------------");
@@ -236,7 +254,7 @@ namespace AdaptiveRadialFollow
 
                 snap = jerk - lastJerk;
 
-                    // Angle index doesn't even use angles directly, but it does through an effect.
+                    // Angle index doesn't even use angles directly.
                 angleIndexPoint = 2 * diff - seconddiff - thirddiff;
                 lastIndexFactor = indexFactor;
                 indexFactor = Math.Sqrt(Math.Pow(angleIndexPoint.X, 2) + Math.Pow(angleIndexPoint.Y, 2)) / 100;
@@ -256,7 +274,7 @@ namespace AdaptiveRadialFollow
             }
         }
 
-            // A bunch of requirements where one can be met to do something funny.,
+            // A bunch of requirements where one can be met to do something funny.
         void ExperimentalBehavior()
         {
 
@@ -264,7 +282,7 @@ namespace AdaptiveRadialFollow
             if ((Math.Abs(indexFactor) > vel * 2 | (accel / vel > 0.35)) && (vel / rawv > 0.25))
             {
             //    Console.WriteLine("snapping?");
-                Console.WriteLine(accel / vel);
+            //    Console.WriteLine(accel / vel);
                 sinceSnap = 0;
             }
 
@@ -284,16 +302,16 @@ namespace AdaptiveRadialFollow
 
             last2Vel = lastVel;
 
-            spinCheck = Math.Clamp(Math.Pow(vel / rawv, 10), 0, 1) +
-                        Math.Clamp(Math.Pow(lastVel / rawv, 10), 0, 1) +
-                        Math.Clamp(Math.Pow(last2Vel / rawv, 10), 0, 1) +
-                        Math.Clamp(Math.Pow(last3Vel / rawv, 10), 0, 1) +
-                        Math.Clamp(Math.Pow(last4Vel / rawv, 10), 0, 1) +
-                        Math.Clamp(Math.Pow(last5Vel / rawv, 10), 0, 1) +
-                        Math.Clamp(Math.Pow(last6Vel / rawv, 10), 0, 1) +
-                        Math.Clamp(Math.Pow(last7Vel / rawv, 10), 0, 1) +
-                        Math.Clamp(Math.Pow(last8Vel / rawv, 10), 0, 1) +
-                        Math.Clamp(Math.Pow(last9Vel / rawv, 10), 0, 1);
+            spinCheck = Math.Clamp(Math.Pow(vel / (rawv * 0.8), 10), 0, 1) +
+                        Math.Clamp(Math.Pow(lastVel / (rawv * 0.8), 10), 0, 1) +
+                        Math.Clamp(Math.Pow(last2Vel / (rawv * 0.8), 10), 0, 1) +
+                        Math.Clamp(Math.Pow(last3Vel / (rawv * 0.8), 10), 0, 1) +
+                        Math.Clamp(Math.Pow(last4Vel / (rawv * 0.8), 10), 0, 1) +
+                        Math.Clamp(Math.Pow(last5Vel / (rawv * 0.8), 10), 0, 1) +
+                        Math.Clamp(Math.Pow(last6Vel / (rawv * 0.8), 10), 0, 1) +
+                        Math.Clamp(Math.Pow(last7Vel / (rawv * 0.8), 10), 0, 1) +
+                        Math.Clamp(Math.Pow(last8Vel / (rawv * 0.8), 10), 0, 1) +
+                        Math.Clamp(Math.Pow(last9Vel / (rawv * 0.8), 10), 0, 1);
 
             if ((spinCheck > 8) && sinceSnap > 30)
             {
@@ -302,6 +320,16 @@ namespace AdaptiveRadialFollow
                 accel = -10 * rawThreshold;
             }
 
+        //    if (indexFactor > Math.Max(1 / (6 / rawv), angidx * vel))
+        //    {
+        //        if (!((vel > rawv & lastVel > rawv) || 
+        //        (accel > (1 / (6 / rawv)) & jerk > (1 / (6 / rawv)) & snap > (1 / (6 / rawv)))))
+        //        {
+        //        Console.WriteLine("OH MY GOD BRUH");
+        //        Console.WriteLine(vel);
+        //        }
+        //    }
+
             if ((vel > rawv & lastVel > rawv) || 
                 (accel > (1 / (6 / rawv)) & jerk > (1 / (6 / rawv)) & snap > (1 / (6 / rawv))) ||
                 (indexFactor > Math.Max(1 / (6 / rawv), angidx * vel)))
@@ -309,6 +337,8 @@ namespace AdaptiveRadialFollow
                 vel *= 10 * vDiv;
                 accelMult = 2;
             }
+            
+
         }
 
         void AdvancedReset()

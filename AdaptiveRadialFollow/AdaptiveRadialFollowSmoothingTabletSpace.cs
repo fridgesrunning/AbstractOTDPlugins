@@ -193,7 +193,7 @@ namespace AdaptiveRadialFollow
 
         [BooleanProperty("2.0 experimental behavior (below options)", ""), DefaultPropertyValue(false), ToolTip
         (
-            "Enables the options below. You should know what you're doing."
+            "Enables the options below, and some other behavioral changes."
         )]
         public bool Advanced
         {
@@ -212,9 +212,9 @@ namespace AdaptiveRadialFollow
             set { radialCore.rvt = value; }
         }
 
-        [Property("Angle Index"), DefaultPropertyValue(1.5d), ToolTip
+        [Property("Angle Index Confidence"), DefaultPropertyValue(1.5d), ToolTip
         (
-            "Controls angle index confidence.\n" +
+            "Controls angle index confidence. Higher is weaker. Gets buggy below 1.\n" +
             "Only active if experimental behavior is enabled."
         )]
         public double aidx
@@ -222,6 +222,17 @@ namespace AdaptiveRadialFollow
             get => radialCore.aidx;
             set { radialCore.aidx = value; }
         }
+
+        [BooleanProperty("Experimental Lerp Thing", ""), DefaultPropertyValue(false), ToolTip
+        (
+            "I don't remember exactly what this does, a toggle should be useful for testing.\n" +
+            "Only active if experimental behavior is enabled."
+        )]
+        public bool xlerp
+        {
+            get => radialCore.xlerp;
+            set { radialCore.xlerp = value; }
+        }        
 
         public event Action<IDeviceReport> Emit;
 
