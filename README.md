@@ -2,11 +2,11 @@
 Plugins originally made by AbstractQBit for[OpenTabletDriver](https://github.com/OpenTabletDriver/OpenTabletDriver), modified for game use.
 
 ## [Adaptive Radial Follow Smoothing](AdaptiveRadialFollow/README.md)
-Hello Bro -- go to releases >>>>>
+Are you lost? Click above. An experimental 2.0 build can be found.
 
 
 ## [AdaptiveBezierInterpolator](AdaptiveBezierInterpolator/README.md)
-Go to releases and scroll down >>>>
+If you're actually looking for something here, then you're really lost.
 
 ## License
 This software is licensed under `GPL-3.0-only` license.
