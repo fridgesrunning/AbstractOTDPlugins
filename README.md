@@ -1,5 +1,5 @@
 # AbstractOTDPlugins [![Total Download Count](https://img.shields.io/github/downloads/fridgesrunning/AbstractOTDPlugins/total.svg)](https://github.com/fridgesrunning/AbstractOTDPlugins/releases)
-Plugins originally made by AbstractQBit for[OpenTabletDriver](https://github.com/OpenTabletDriver/OpenTabletDriver), modified for game use.
+Plugins originally made by AbstractQBit for [OpenTabletDriver](https://github.com/OpenTabletDriver/OpenTabletDriver), modified for niche use cases.
 
 ## [Adaptive Radial Follow Smoothing](AdaptiveRadialFollow/)
 Are you lost? Click above. An experimental 2.0 build can be found.

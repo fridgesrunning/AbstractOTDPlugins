@@ -77,13 +77,6 @@ namespace AdaptiveRadialFollow
         }
         public double minSmooth;
 
-        public bool VelocityScalesKnee
-        {
-            get { return vKnee; }
-            set { vKnee = value; }
-        }
-        private bool vKnee;
-
         public double RawAccelThreshold
         {
             get { return rawThreshold; }
@@ -104,13 +97,6 @@ namespace AdaptiveRadialFollow
             set { accPower = System.Math.Clamp(value, 1.0f, 1000000.0f); }
         }
         public double accPower;
-
-        public bool SnapCompensation
-        {
-            get { return sToggle; }
-            set { sToggle = value; }
-        }
-        public bool sToggle;
 
         public bool Advanced
         {
@@ -133,12 +119,28 @@ namespace AdaptiveRadialFollow
         }
         public double angidx;
 
-        public bool xlerp
+        public double xlerpconf
         {
-            get { return explerp; }
-            set { explerp = value; }
+            get { return explerpconf; }
+            set { explerpconf = value; }
         }
-        public bool explerp;
+        public double explerpconf;
+
+        public double accelMultVelocityOverride
+        {
+            get { return amvDiv; }
+            set { amvDiv = vDiv;
+            if (aToggle == true)
+            amvDiv = value;  }
+        }
+        public double amvDiv;
+
+        public double spinCheckConfidence
+        {
+            get { return scConf; }
+            set { scConf = value; }
+        }
+        public double scConf;
 
         public float SampleRadialCurve(IDeviceReport value, float dist) => (float)deltaFn(value, dist, xOffset(value), scaleComp(value));
         public double ResetMs = 1;
@@ -158,16 +160,12 @@ namespace AdaptiveRadialFollow
             Vector2 direction = target - cursor;
             float distToMove = SampleRadialCurve(value, direction.Length());    // Where all the magic happens
 
-                // rawThreshold should be negative (or not.) Sets lerp to 
+                // rawThreshold should be negative (or not.) Sets lerpScale to a smootherstep from accel = rawThreshold to accel = something lower
             if (accel / (6 / vDiv) < rawThreshold)
             lerpScale = Smootherstep(accel / (6 / vDiv), rawThreshold, rawThreshold - (1 / (6 / vDiv)));
 
-            if ((aToggle == true) && (indexFactor - lastIndexFactor > (holdVel * 3.5)) && (explerp == true))
-            lerpScale = Math.Max(lerpScale, Smootherstep(indexFactor - lastIndexFactor, (holdVel * 3.5), (holdVel * 3.5) + (1 / (6 / rawv))));
-                
-                // Snap Compensation - a bad attempt to go in the middle if it thinks you should have, but it does every time. I don't even know if it works.
-            if (sToggle == true)
-            direction = LerpedCursor((float)lerpScale, direction, direction + (cursor - lastCursor));
+            if ((aToggle == true) && (indexFactor - lastIndexFactor > (holdVel * explerpconf)))
+            lerpScale = Math.Max(lerpScale, Smootherstep(indexFactor - lastIndexFactor, (holdVel * explerpconf), (holdVel * explerpconf) + (1 / (6 / rawv))));  // Don't exactly remember why this is the way it is but it looks like it works
             
             direction = Vector2.Normalize(direction);
             cursor = cursor + Vector2.Multiply(direction, distToMove);
@@ -195,12 +193,6 @@ namespace AdaptiveRadialFollow
                 Console.WriteLine(smoothCoef / (1 + (Smoothstep(vel * accelMult, vDiv, 0) * (minSmooth - 1))));
                 Console.WriteLine("Sharp Decel Lerp (With sharp decel, cursor is lerped between calculated value and raw report using this scale):");
                 Console.WriteLine(lerpScale);
-
-                if (vKnee == true)
-                {
-                    Console.WriteLine("Adjusted Soft Knee Scale:");
-                    Console.WriteLine(((6 * (vel / vDiv) + 1) * accelMult) * knScale);
-                }
 
                 if (aToggle == true)
                 {
@@ -259,8 +251,8 @@ namespace AdaptiveRadialFollow
                 lastIndexFactor = indexFactor;
                 indexFactor = Math.Sqrt(Math.Pow(angleIndexPoint.X, 2) + Math.Pow(angleIndexPoint.Y, 2)) / 100;
 
-                accelMult = Smoothstep(accel, -1 / (6 / vDiv), 0) + Smoothstep(accel, 0, 1 / (6 / vDiv));   // Usually 1, reaches 0 and 2 under sufficient deceleration and acceleration respecctively
-            
+                accelMult = Smoothstep(accel, -1 / (6 / amvDiv), 0) + Smoothstep(accel, 0, 1 / (6 / amvDiv));   // Usually 1, reaches 0 and 2 under sufficient deceleration and acceleration respecctively
+                
             /// You can uncomment for advanced diagnostics.
             //    Console.WriteLine(vel);
             //    Console.WriteLine(accel);
@@ -302,16 +294,16 @@ namespace AdaptiveRadialFollow
 
             last2Vel = lastVel;
 
-            spinCheck = Math.Clamp(Math.Pow(vel / (rawv * 0.8), 10), 0, 1) +
-                        Math.Clamp(Math.Pow(lastVel / (rawv * 0.8), 10), 0, 1) +
-                        Math.Clamp(Math.Pow(last2Vel / (rawv * 0.8), 10), 0, 1) +
-                        Math.Clamp(Math.Pow(last3Vel / (rawv * 0.8), 10), 0, 1) +
-                        Math.Clamp(Math.Pow(last4Vel / (rawv * 0.8), 10), 0, 1) +
-                        Math.Clamp(Math.Pow(last5Vel / (rawv * 0.8), 10), 0, 1) +
-                        Math.Clamp(Math.Pow(last6Vel / (rawv * 0.8), 10), 0, 1) +
-                        Math.Clamp(Math.Pow(last7Vel / (rawv * 0.8), 10), 0, 1) +
-                        Math.Clamp(Math.Pow(last8Vel / (rawv * 0.8), 10), 0, 1) +
-                        Math.Clamp(Math.Pow(last9Vel / (rawv * 0.8), 10), 0, 1);
+            spinCheck = Math.Clamp(Math.Pow(vel / (rawv * scConf), 5), 0, 1) +
+                        Math.Clamp(Math.Pow(lastVel / (rawv * scConf), 5), 0, 1) +
+                        Math.Clamp(Math.Pow(last2Vel / (rawv * scConf), 5), 0, 1) +
+                        Math.Clamp(Math.Pow(last3Vel / (rawv * scConf), 5), 0, 1) +
+                        Math.Clamp(Math.Pow(last4Vel / (rawv * scConf), 5), 0, 1) +
+                        Math.Clamp(Math.Pow(last5Vel / (rawv * scConf), 5), 0, 1) +
+                        Math.Clamp(Math.Pow(last6Vel / (rawv * scConf), 5), 0, 1) +
+                        Math.Clamp(Math.Pow(last7Vel / (rawv * scConf), 5), 0, 1) +
+                        Math.Clamp(Math.Pow(last8Vel / (rawv * scConf), 5), 0, 1) +
+                        Math.Clamp(Math.Pow(last9Vel / (rawv * scConf), 5), 0, 1);
 
             if ((spinCheck > 8) && sinceSnap > 30)
             {
@@ -389,18 +381,9 @@ namespace AdaptiveRadialFollow
 
         double kneeScaled(IDeviceReport value, double x) 
         {
-            double velocity = 1;
-            if (vKnee == true)
-            {
-            if (value is ITabletReport report)
-            {
-                velocity = (6 * (vel / vDiv) * accelMult) + 1;
-            }
-            }
-
             return knScale switch
             {
-                > 0.0001f => (knScale * velocity) * kneeFunc(x / (knScale * velocity)) + 1,
+                > 0.0001f => (knScale) * kneeFunc(x / (knScale)) + 1,
                 _ => x > 0 ? 1 : 1 + x,
             };
         }
@@ -410,29 +393,12 @@ namespace AdaptiveRadialFollow
         double inverseKneeScaled(IDeviceReport value, double x) 
         {
             double velocity = 1;
-            if (vKnee == true)
-            {
-                if (value is ITabletReport report)
-                {
-                   velocity = (6 * (vel / vDiv) * accelMult) + 1;
-                }
-            }
-            
-         return (velocity * knScale) * Math.Log(inverseTanh(Math.Exp((x - 1) / (knScale * velocity))), Math.E);
+            return (velocity * knScale) * Math.Log(inverseTanh(Math.Exp((x - 1) / (knScale * velocity))), Math.E);
         }
 
         double derivKneeScaled(IDeviceReport value, double x)
         {
-            double velocity = 1;
-            if (vKnee == true)
-            {
-                if (value is ITabletReport report)
-                {
-                    velocity = (6 * (vel / vDiv) * accelMult) + 1;
-                }
-            }
-
-            var e = Math.Exp(x / (knScale * velocity));
+            var e = Math.Exp(x / (knScale));
             var tanh = Math.Tanh(e);
             return (e - e * (tanh * tanh)) / tanh;
         }

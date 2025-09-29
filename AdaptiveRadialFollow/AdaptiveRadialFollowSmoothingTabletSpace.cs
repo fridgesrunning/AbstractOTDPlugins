@@ -84,7 +84,8 @@ namespace AdaptiveRadialFollow
         [Property("Velocity Divisor (Very Important)"), DefaultPropertyValue(5.0d), ToolTip
         (
             "Radius will be multiplied by the cursor's velocity divided by this number up to 1 * the radius value.\n\n" +
-            "Unit of measurement may be millimeters per report rate. A full area CTL-480 user could use 5-8, so you will likely need a lesser value than this.\n\n" +
+            "Unit of measurement may be millimeters per report rate. A full area CTL-480 user could use anywhere from 5-12 depending on other settings/environment,\n" +
+            "so you will likely need to play around with this.\n" +
             "Default value is 5.0"
         )]
         public double VelocityDivisor
@@ -130,19 +131,6 @@ namespace AdaptiveRadialFollow
             get => radialCore.MinimumSmoothingDivisor;
             set { radialCore.MinimumSmoothingDivisor = value; }
         }
-        
-        [BooleanProperty("Velocity Scales Knee", ""), DefaultPropertyValue(false), ToolTip
-        (
-            "Only check this if you know what you're doing (if you read below)\n\n" +
-            "Should the soft knee scale be multiplied by 1 + velocity?\n" +
-            "If enabled, it's recommended to use a low value for the soft knee scale, like 0.2.\n\n" +
-            "Default value is false"
-        )]
-        public bool VelocityScalesKnee
-        {
-            get => radialCore.VelocityScalesKnee;
-            set { radialCore.VelocityScalesKnee = value; }
-        }
 
         [Property("Raw Accel Threshold"), DefaultPropertyValue(-0.15d), ToolTip
         (
@@ -181,16 +169,6 @@ namespace AdaptiveRadialFollow
             set { radialCore.AccelMultPower = value; }
         }
 
-        [BooleanProperty("Snap Compensation", ""), DefaultPropertyValue(false), ToolTip
-        (
-            "Assumes you are impossibly unlucky all the time and the furthest extent of your aim's reach was timed between tablet reports. Leave this alone."
-        )]
-        public bool SnapCompensation
-        {
-            get => radialCore.SnapCompensation;
-            set { radialCore.SnapCompensation = value; }
-        }
-
         [BooleanProperty("2.0 experimental behavior (below options)", ""), DefaultPropertyValue(false), ToolTip
         (
             "Enables the options below, and some other behavioral changes."
@@ -214,7 +192,7 @@ namespace AdaptiveRadialFollow
 
         [Property("Angle Index Confidence"), DefaultPropertyValue(1.5d), ToolTip
         (
-            "Controls angle index confidence. Higher is weaker. Gets buggy below 1.\n" +
+            "Controls angle index confidence. Higher is weaker. Gets buggy below 1. Usually best to leave this alone.\n" +
             "Only active if experimental behavior is enabled."
         )]
         public double aidx
@@ -223,16 +201,38 @@ namespace AdaptiveRadialFollow
             set { radialCore.aidx = value; }
         }
 
-        [BooleanProperty("Experimental Lerp Thing", ""), DefaultPropertyValue(false), ToolTip
+        [Property("Unnamed Confidence 1"), DefaultPropertyValue(3.0d), ToolTip
         (
-            "I don't remember exactly what this does, a toggle should be useful for testing.\n" +
+            "No idea what to name this. It's similar to above but in the same vein as raw accel threshold. Usually best to leave this alone.\n" +
             "Only active if experimental behavior is enabled."
         )]
-        public bool xlerp
+        public double xlerpconf
         {
-            get => radialCore.xlerp;
-            set { radialCore.xlerp = value; }
-        }        
+            get => radialCore.xlerpconf;
+            set { radialCore.xlerpconf = value; }
+        }
+
+        [Property("Accel Mult Velocity Override"), DefaultPropertyValue(5.0d), ToolTip
+        (
+            "Velocity divisor plays a role in accel mult calculation. This is a manual override. Nothing changes if this is the same as the velocity divisor\n" +
+            "Only active if experimental behavior is enabled."
+        )]
+        public double accelMultVelocityOverride
+        {
+            get => radialCore.accelMultVelocityOverride;
+            set { radialCore.accelMultVelocityOverride = value; }
+        }
+
+        [Property("Spin Check Confidence"), DefaultPropertyValue(0.75d), ToolTip
+        (
+            "Checks if raw velocity has been above ((this number) * raw velocity threshold) enough with no snaps.\n" +
+            "Only active if experimental behavior is enabled."
+        )]
+        public double spinCheckConfidence
+        {
+            get => radialCore.spinCheckConfidence;
+            set { radialCore.spinCheckConfidence = value; }
+        }
 
         public event Action<IDeviceReport> Emit;
 
