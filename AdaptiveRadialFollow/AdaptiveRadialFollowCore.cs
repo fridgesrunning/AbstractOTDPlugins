@@ -108,21 +108,21 @@ namespace AdaptiveRadialFollow
         public double rvt
         {
             get { return rawv; }
-            set { rawv = value; }
+            set { rawv =  System.Math.Clamp(value, 0.01f, 1000000.0f); }
         }
         public double rawv;
 
         public double aidx
         {
             get { return angidx; }
-            set { angidx = value; }
+            set { angidx = System.Math.Clamp(value, 1.0f, 1000000.0f); }
         }
         public double angidx;
 
         public double xlerpconf
         {
             get { return explerpconf; }
-            set { explerpconf = value; }
+            set { explerpconf = System.Math.Clamp(value, 1.0f, 1000000.0f); }
         }
         public double explerpconf;
 
@@ -133,21 +133,21 @@ namespace AdaptiveRadialFollow
 
                 // amvDiv = vDiv unless specified to an override
             if (aToggle == true)
-            amvDiv = value;  }
+            amvDiv = System.Math.Clamp(value, 1.0f, 1000000.0f);  }
         }
         public double amvDiv;
 
         public double spinCheckConfidence
         {
             get { return scConf; }
-            set { scConf = value; }
+            set { scConf = System.Math.Clamp(value, 0.0f, 1.0f); }
         }
         public double scConf;
 
-        public bool alternateBehavior
+        public bool groundedBehavior
         {
-            get { return alternateBehavior; }
-            set { alternateBehavior = value; }
+            get { return rToggle; }
+            set { rToggle = value; }
         }
         public bool rToggle;
 
@@ -162,8 +162,13 @@ namespace AdaptiveRadialFollow
 
                 // Self explanatory
             if (aToggle == true)
-            ExperimentalBehavior();
-
+            {
+                AdvancedBehavior();
+                if (rToggle == true)
+                {
+                    GroundedRadius(value, target); // Grounded radius behavior
+                }
+            }
             holdCursor = cursor;    // Don't remember why this is a thing
 
             Vector2 direction = target - cursor;
@@ -276,15 +281,17 @@ namespace AdaptiveRadialFollow
         }
 
             // 2.0 behavior.
-        void ExperimentalBehavior()
+        void AdvancedBehavior()
         {
 
             sinceSnap += 1;
+            doubt = 0;
             if ((Math.Abs(indexFactor) > vel * 2 | (accel / vel > 0.35)) && (vel / rawv > 0.25))
             {
             //    Console.WriteLine("snapping?");
             //    Console.WriteLine(accel / vel);
                 sinceSnap = 0;
+                doubt = 1;
             }
 
             last9Vel = last8Vel;
@@ -314,13 +321,6 @@ namespace AdaptiveRadialFollow
                         Math.Clamp(Math.Pow(last8Vel / (rawv * scConf), 5), 0, 1) +
                         Math.Clamp(Math.Pow(last9Vel / (rawv * scConf), 5), 0, 1);
 
-            if ((spinCheck > 8) && sinceSnap > 30)
-            {
-            //    Console.WriteLine("spinning?");
-                vel = 0;
-                accel = -10 * rawThreshold;
-            }
-
         //    if (indexFactor > Math.Max(1 / (6 / rawv), angidx * vel))
         //    {
         //        if (!((vel > rawv & lastVel > rawv) || 
@@ -338,31 +338,49 @@ namespace AdaptiveRadialFollow
                 vel *= 10 * vDiv;
                 accelMult = 2;
             }
+
+            if ((spinCheck > 8) && sinceSnap > 30)
+            {
+            //    Console.WriteLine("spinning?");
+                vel = 0;
+                accel = -10 * rawThreshold;
+            }
+
+
         }
 
-            // Alternate radius behavior
-        void GroundedRadius()
+            // Grounded radius behavior
+        void GroundedRadius(IDeviceReport value, Vector2 target)
         {
                 // Not radius max
-            if (rOuterAdjusted - rOuter > minMult * rOuter)
+            if ((rOuterAdjusted(value, cursor, rOuter, rInner) < rOuter * 0.99) || holdVel < rawv)
+            {
                 radiusGroundCount = 0;
+                distanceGround = 0;
+            //    Console.WriteLine("0");
+            }
                 else radiusGroundCount += 1;
 
                 // Radius max
-            if (rOuterAdjusted - rOuter < minMult * rOuter)
+            if ((rOuterAdjusted(value, cursor, rOuter, rInner) >= rOuter * 0.99) || holdVel >= rawv)
             {
-                if (radiusGroundCount > 1)
-                return;
-                else
+                if (radiusGroundCount < 2 - doubt)  // Have a give of 1 non-max before next ground unless doubt is 1
                 {
-                    GroundedPoint = cursor;
-
-                    groundedDiff = target - GroundedPoint;
-
-                    distanceGround = Math.Sqrt(Math.Pow(groundedDiff.X, 2) + Math.Pow(groundedDiff.Y, 2)) / 100;
-
+                    groundedPoint = cursor;
                 }
+                    groundedDiff = target - groundedPoint;
+                    distanceGround = Math.Sqrt(Math.Pow(groundedDiff.X, 2) + Math.Pow(groundedDiff.Y, 2));
+                //    Console.WriteLine(groundedPoint);
+                //    Console.WriteLine(distanceGround);
+            }
 
+
+                // Cursor is outside max outer radius while radius is usually maxed? Act as if radius doesn't exist for smooth movement
+            if (distanceGround > rOuter)
+            {
+                vel = 0;
+                accel = -10 * rawThreshold;
+            //    Console.WriteLine("AAAAHHHHHHHH!!!!!");
             }
 
         }
@@ -578,14 +596,16 @@ namespace AdaptiveRadialFollow
 
         public double sinceSnap;
 
-        public double radiusGroundCount
+        public double radiusGroundCount;
 
-        public double radiusGroundPosition
+        public double radiusGroundPosition;
 
         public Vector2 groundedPoint;
 
         public Vector2 groundedDiff;
 
         public double distanceGround;
+
+        public double doubt;
     }
 }

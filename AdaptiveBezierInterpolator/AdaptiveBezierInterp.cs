@@ -49,7 +49,7 @@ namespace AdaptiveBezierInterpolator
         public float VelocityDivisor
         {
             get { return vDiv; }
-            set { vDiv = System.Math.Clamp(value, 1.0f, 1000000.0f); }
+            set { vDiv = System.Math.Clamp(10 * value, 1.0f, 1000000.0f); }
         }
         private float vDiv;
 

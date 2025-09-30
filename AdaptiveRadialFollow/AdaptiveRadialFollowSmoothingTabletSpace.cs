@@ -132,12 +132,12 @@ namespace AdaptiveRadialFollow
             set { radialCore.MinimumSmoothingDivisor = value; }
         }
 
-        [Property("Raw Accel Threshold"), DefaultPropertyValue(-0.15d), ToolTip
+        [Property("Raw Accel Threshold"), DefaultPropertyValue(-0.5d), ToolTip
         (
             "If decel (negative value) is sharp enough, then cursor starts to approach snapping to raw report. Velocity divisor adjusts for this.\n" +
             "You can put this above 0 if you feel like it, but be aware that this overrides most other processing.\n" + 
             "Look in the console for the Sharp Decel Lerp value (read the option below) if you want to do that.\n\n" +
-            "Default value is -0.15"
+            "Default value is -0.5"
         )]
         public double RawAccelThreshold
         {
@@ -160,7 +160,7 @@ namespace AdaptiveRadialFollow
 
         [Property("Accel Mult Power"), DefaultPropertyValue(7.0d), ToolTip
         (
-            "Enable Console Logging above and look at the console. This specific setting affects only radius scaling.\n\n" +
+            "Enable Console Logging above and look at the console. This specific setting affects only radius scaling. but is pretty important.\n\n" +
             "Default value is 7.0"
         )]
         public double AccelMultPower
@@ -169,9 +169,10 @@ namespace AdaptiveRadialFollow
             set { radialCore.AccelMultPower = value; }
         }
 
-        [BooleanProperty("2.0 experimental behavior (below options)", ""), DefaultPropertyValue(false), ToolTip
+        [BooleanProperty("2.0 behavior (below options)", ""), DefaultPropertyValue(true), ToolTip
         (
-            "Enables the options below, and some other behavioral changes."
+            "Enables the options below, and some other behavioral changes.\n\n" +
+            "Default value is true"
         )]
         public bool Advanced
         {
@@ -182,7 +183,8 @@ namespace AdaptiveRadialFollow
         [Property("Raw Velocity Threshold"), DefaultPropertyValue(5.0d), ToolTip
         (
             "Regardless of acceleration, being above this velocity for 2 consecutive reports will override and max out radius.\n" +
-            "Only active if experimental behavior is enabled."
+            "Only active if 2.0 behavior is enabled.\n\n" +
+            "Default value is 5.0"
         )]
         public double rvt
         {
@@ -193,7 +195,8 @@ namespace AdaptiveRadialFollow
         [Property("Angle Index Confidence"), DefaultPropertyValue(1.5d), ToolTip
         (
             "Controls angle index confidence. Higher is weaker. Gets buggy below 1. Usually best to leave this alone.\n" +
-            "Only active if experimental behavior is enabled."
+            "Only active if 2.0 behavior is enabled.\n\n" +
+            "Default value is 1.5"
         )]
         public double aidx
         {
@@ -201,10 +204,11 @@ namespace AdaptiveRadialFollow
             set { radialCore.aidx = value; }
         }
 
-        [Property("Unnamed Confidence 1"), DefaultPropertyValue(3.0d), ToolTip
+        [Property("Angle Index Decel Confidence"), DefaultPropertyValue(3.0d), ToolTip
         (
-            "No idea what to name this. It's similar to above but in the same vein as raw accel threshold. Usually best to leave this alone.\n" +
-            "Only active if experimental behavior is enabled."
+            "No idea how to describe this well. It's similar to above but in the same vein as raw accel threshold. Usually best to leave this alone.\n" +
+            "Only active if 2.0 behavior is enabled.\n\n" +
+            "Default value is 3.0"
         )]
         public double xlerpconf
         {
@@ -215,7 +219,8 @@ namespace AdaptiveRadialFollow
         [Property("Accel Mult Velocity Override"), DefaultPropertyValue(5.0d), ToolTip
         (
             "Velocity divisor plays a role in accel mult calculation. This is a manual override. Nothing changes if this is the same as the velocity divisor\n" +
-            "Only active if experimental behavior is enabled."
+            "Only active if 2.0 behavior is enabled.\n\n" +
+            "Default value is 5.0"
         )]
         public double accelMultVelocityOverride
         {
@@ -226,7 +231,8 @@ namespace AdaptiveRadialFollow
         [Property("Spin Check Confidence"), DefaultPropertyValue(0.75d), ToolTip
         (
             "Checks if raw velocity has been above ((this number) * raw velocity threshold) enough with no snaps.\n" +
-            "Only active if experimental behavior is enabled."
+            "Only active if 2.0 behavior is enabled.\n\n" +
+            "Default value is 0.75"
         )]
         public double spinCheckConfidence
         {
@@ -234,15 +240,16 @@ namespace AdaptiveRadialFollow
             set { radialCore.spinCheckConfidence = value; }
         }
 
-        [BooleanProperty("Grounded Radius (Alternate Behavior)", ""), DefaultPropertyValue(false), ToolTip
+        [BooleanProperty("Grounded Radius (Default Behavior)", ""), DefaultPropertyValue(true), ToolTip
         (
-            "Alternate radius behavior where the position of the first radius max dictates the center of the radius.\n" +
-            "Only active if experimental behavior is enabled."
+            "Radius behavior where the position of the first radius max in a series of consecutive radius max reports dictates the center of the radius.\n" +
+            "Only active if 2.0 behavior is enabled.\n\n" +
+            "Default value is true"
         )]
-        public bool alternateBehavior
+        public bool groundedBehavior
         {
-            get => radialCore.alternateBehavior;
-            set { radialCore.alternateBehavior = value; }
+            get => radialCore.groundedBehavior;
+            set { radialCore.groundedBehavior = value; }
         }
 
         public event Action<IDeviceReport> Emit;
