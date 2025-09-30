@@ -130,6 +130,8 @@ namespace AdaptiveRadialFollow
         {
             get { return amvDiv; }
             set { amvDiv = vDiv;
+
+                // amvDiv = vDiv unless specified to an override
             if (aToggle == true)
             amvDiv = value;  }
         }
@@ -141,6 +143,13 @@ namespace AdaptiveRadialFollow
             set { scConf = value; }
         }
         public double scConf;
+
+        public bool alternateBehavior
+        {
+            get { return alternateBehavior; }
+            set { alternateBehavior = value; }
+        }
+        public bool rToggle;
 
         public float SampleRadialCurve(IDeviceReport value, float dist) => (float)deltaFn(value, dist, xOffset(value), scaleComp(value));
         public double ResetMs = 1;
@@ -266,7 +275,7 @@ namespace AdaptiveRadialFollow
             }
         }
 
-            // A bunch of requirements where one can be met to do something funny.
+            // 2.0 behavior.
         void ExperimentalBehavior()
         {
 
@@ -329,7 +338,32 @@ namespace AdaptiveRadialFollow
                 vel *= 10 * vDiv;
                 accelMult = 2;
             }
-            
+        }
+
+            // Alternate radius behavior
+        void GroundedRadius()
+        {
+                // Not radius max
+            if (rOuterAdjusted - rOuter > minMult * rOuter)
+                radiusGroundCount = 0;
+                else radiusGroundCount += 1;
+
+                // Radius max
+            if (rOuterAdjusted - rOuter < minMult * rOuter)
+            {
+                if (radiusGroundCount > 1)
+                return;
+                else
+                {
+                    GroundedPoint = cursor;
+
+                    groundedDiff = target - GroundedPoint;
+
+                    distanceGround = Math.Sqrt(Math.Pow(groundedDiff.X, 2) + Math.Pow(groundedDiff.Y, 2)) / 100;
+
+                }
+
+            }
 
         }
 
@@ -543,5 +577,15 @@ namespace AdaptiveRadialFollow
         public double angleIndex;
 
         public double sinceSnap;
+
+        public double radiusGroundCount
+
+        public double radiusGroundPosition
+
+        public Vector2 groundedPoint;
+
+        public Vector2 groundedDiff;
+
+        public double distanceGround;
     }
 }

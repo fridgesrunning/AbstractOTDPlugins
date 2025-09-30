@@ -234,6 +234,17 @@ namespace AdaptiveRadialFollow
             set { radialCore.spinCheckConfidence = value; }
         }
 
+        [BooleanProperty("Grounded Radius (Alternate Behavior)", ""), DefaultPropertyValue(false), ToolTip
+        (
+            "Alternate radius behavior where the position of the first radius max dictates the center of the radius.\n" +
+            "Only active if experimental behavior is enabled."
+        )]
+        public bool alternateBehavior
+        {
+            get => radialCore.alternateBehavior;
+            set { radialCore.alternateBehavior = value; }
+        }
+
         public event Action<IDeviceReport> Emit;
 
         public void Consume(IDeviceReport value)
