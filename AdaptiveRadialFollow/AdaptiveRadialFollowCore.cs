@@ -14,6 +14,13 @@ namespace AdaptiveRadialFollow
     public class AdaptiveRadialFollowCore
     {
 
+        public double xDivisor
+        {
+            get { return xDiv; }
+            set { xDiv = System.Math.Clamp(value, 0.01f, 100.0f); }
+        }
+        private double xDiv;
+
         public double OuterRadius
         {
             get { return rOuter; }
@@ -94,7 +101,7 @@ namespace AdaptiveRadialFollow
         public double AccelMultPower
         {
             get { return accPower; }
-            set { accPower = System.Math.Clamp(value, 1.0f, 1000000.0f); }
+            set { accPower = System.Math.Clamp(value, 1.0f, 100.0f); }
         }
         public double accPower;
 
@@ -115,14 +122,14 @@ namespace AdaptiveRadialFollow
         public double aidx
         {
             get { return angidx; }
-            set { angidx = System.Math.Clamp(value, 1.0f, 1000000.0f); }
+            set { angidx = System.Math.Clamp(value, 0.1f, 1000000.0f); }
         }
         public double angidx;
 
         public double xlerpconf
         {
             get { return explerpconf; }
-            set { explerpconf = System.Math.Clamp(value, 1.0f, 1000000.0f); }
+            set { explerpconf = System.Math.Clamp(value, 0.1f, 1000000.0f); }
         }
         public double explerpconf;
 
@@ -133,14 +140,14 @@ namespace AdaptiveRadialFollow
 
                 // amvDiv = vDiv unless specified to an override
             if (aToggle == true)
-            amvDiv = System.Math.Clamp(value, 1.0f, 1000000.0f);  }
+            amvDiv = System.Math.Clamp(value, 0.1f, 1000000.0f);  }
         }
         public double amvDiv;
 
         public double spinCheckConfidence
         {
             get { return scConf; }
-            set { scConf = System.Math.Clamp(value, 0.0f, 1.0f); }
+            set { scConf = System.Math.Clamp(value, 0.1f, 1.0f); }
         }
         public double scConf;
 
@@ -248,11 +255,11 @@ namespace AdaptiveRadialFollow
                 thirddiff = lastLastReport - last3Report;
 
                 lastVel = vel;
-                vel =  Math.Sqrt(Math.Pow(diff.X, 2) + Math.Pow(diff.Y, 2)) / 100;
+                vel =  Math.Sqrt(Math.Pow(diff.X / xDiv, 2) + Math.Pow(diff.Y, 2)) / 100;
                 holdVel = vel;
 
                 lastAccel = accel;
-                accel = vel - Math.Sqrt(Math.Pow(seconddiff.X, 2) + Math.Pow(seconddiff.Y, 2)) / 100;
+                accel = vel - Math.Sqrt(Math.Pow(seconddiff.X / xDiv, 2) + Math.Pow(seconddiff.Y, 2)) / 100;
 
                     // Has less use than it probably should.
                 lastJerk = jerk;
@@ -263,7 +270,7 @@ namespace AdaptiveRadialFollow
                     // Angle index doesn't even use angles directly.
                 angleIndexPoint = 2 * diff - seconddiff - thirddiff;
                 lastIndexFactor = indexFactor;
-                indexFactor = Math.Sqrt(Math.Pow(angleIndexPoint.X, 2) + Math.Pow(angleIndexPoint.Y, 2)) / 100;
+                indexFactor = Math.Sqrt(Math.Pow(angleIndexPoint.X / xDiv, 2) + Math.Pow(angleIndexPoint.Y, 2)) / 100;
 
                 accelMult = Smoothstep(accel, -1 / (6 / amvDiv), 0) + Smoothstep(accel, 0, 1 / (6 / amvDiv));   // Usually 1, reaches 0 and 2 under sufficient deceleration and acceleration respecctively
                 
@@ -407,8 +414,8 @@ namespace AdaptiveRadialFollow
 
         void AdvancedReset()
         {
-            vel = Math.Sqrt(Math.Pow(diff.X, 2) + Math.Pow(diff.Y, 2)) / 100;
-            accel = vel - Math.Sqrt(Math.Pow(seconddiff.X, 2) + Math.Pow(seconddiff.Y, 2)) / 100;   // This serves no use but might later on.
+            vel = Math.Sqrt(Math.Pow(diff.X / xDiv, 2) + Math.Pow(diff.Y, 2)) / 100;
+            accel = vel - Math.Sqrt(Math.Pow(seconddiff.X / xDiv, 2) + Math.Pow(seconddiff.Y, 2)) / 100;   // This serves no use but might later on.
         }
         
         /// Math functions

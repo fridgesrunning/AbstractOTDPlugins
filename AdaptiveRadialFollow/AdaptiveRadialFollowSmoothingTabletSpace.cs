@@ -12,14 +12,28 @@ namespace AdaptiveRadialFollow
         public AdaptiveRadialFollowSmoothingTabletSpace() : base() { }
         public PipelinePosition Position => PipelinePosition.PreTransform;
 
-        [Property("Outer Radius"), DefaultPropertyValue(10.0d), Unit("mm"), ToolTip
+        [Property("X Divisor (Important)"), DefaultPropertyValue(1.0d), ToolTip
         (
+            "https://www.desmos.com/calculator/pw0r8hvezt\n\n" +
+            "Accounts for the discrepancy between tablet aspect ratio and screen aspect ratio.\n" +
+            "Default value is 1.0"
+        )]
+        public double xDivisor
+        {
+            get => radialCore.xDivisor;
+            set { radialCore.xDivisor = value; }
+        }
+
+        [Property("Outer Radius (Important)"), DefaultPropertyValue(10.0d), Unit("mm"), ToolTip
+        (
+            "https://www.desmos.com/calculator/pw0r8hvezt\n\n" +
             "This scales with cursor velocity by default. \n\n" +
             "Outer radius defines the max distance the cursor can lag behind the actual reading.\n\n" +
             "Unit of measurement is millimetres.\n" +
             "The value should be >= 0 and inner radius.\n" +
             "If smoothing leak is used, defines the point at which smoothing will be reduced,\n" +
             "instead of hard clamping the max distance between the tablet position and a cursor.\n\n" +
+            "That was the original description. This should be equal to inner radius in most cases.\n\n" +
             "Default value is 10.0 mm"
         )]
         public double OuterRadius
@@ -28,8 +42,9 @@ namespace AdaptiveRadialFollow
             set { radialCore.OuterRadius = value; }
         }
 
-        [Property("Inner Radius"), DefaultPropertyValue(10.0d), Unit("mm"), ToolTip
+        [Property("Inner Radius (Important)"), DefaultPropertyValue(10.0d), Unit("mm"), ToolTip
         (
+            "https://www.desmos.com/calculator/pw0r8hvezt\n\n" +
             "This scales with cursor velocity by default. \n\n" +
             "Inner radius defines the max distance the tablet reading can deviate from the cursor without moving it.\n" +
             "This effectively creates a deadzone in which no movement is produced.\n\n" +
@@ -43,11 +58,11 @@ namespace AdaptiveRadialFollow
             set { radialCore.InnerRadius = value; }
         }
 
-        [Property("Initial Smoothing Coefficient"), DefaultPropertyValue(1d), ToolTip
+        [Property("Initial Smoothing Coefficient"), DefaultPropertyValue(0.9d), ToolTip
         (
             "Smoothing coefficient determines how fast or slow the cursor will descend from the outer radius to the inner.\n\n" +
             "Possible value range is 0.0001..1, higher values mean more smoothing (slower descent to the inner radius).\n\n" +
-            "Default value is 1"
+            "Default value is 0.9"
         )]
         public double SmoothingCoefficient
         {
@@ -81,10 +96,11 @@ namespace AdaptiveRadialFollow
             set { radialCore.SmoothingLeakCoefficient = value; }
         }
 
-        [Property("Velocity Divisor (Very Important)"), DefaultPropertyValue(5.0d), ToolTip
+        [Property("Velocity Divisor (Important)"), DefaultPropertyValue(5.0d), ToolTip
         (
+            "https://www.desmos.com/calculator/pw0r8hvezt\n\n" +
             "Radius will be multiplied by the cursor's velocity divided by this number up to 1 * the radius value.\n\n" +
-            "Unit of measurement may be millimeters per report rate. A full area CTL-480 user could use anywhere from 5-12 depending on other settings/environment,\n" +
+            "Unit of measurement is be millimeters per report. A full area CTL-480 user could use anywhere from 5-12 depending on other settings/environment,\n" +
             "so you will likely need to play around with this.\n" +
             "Default value is 5.0"
         )]
@@ -98,7 +114,7 @@ namespace AdaptiveRadialFollow
         (
             "As radius scales by velocity, it might be useful for there to still be some radius even if the velocity is low.\n\n" +
             "Possible value range is 0..1, 0 means the radius will become small as to be effectively 0, 1 means no velocity scaling which I don't recommend.\n\n" +
-            "Default value is 0.025"
+            "Default value is 0.0"
         )]
         public double MinimumRadiusMultiplier
         {
@@ -110,7 +126,7 @@ namespace AdaptiveRadialFollow
         (
             "Velocity / the velocity divisor returns a radial multiplier, which is raised to this power.\n\n" +
             "Possible value range is 1 and up, 1 means radius will scale linearly with velocity up to 1 * radius, 2 means it will be squared, 3 means it will be cubed, and so on.\n" +
-            "Higher values get closer to an instant shift once a threshold is crossed - ideal for larger inside radii.\n" + 
+            "Numbers that low are just for explanation, I recommend going higher.\n" + 
             "Default value is 9.0"
         )]
         public double RadialMultPower
@@ -119,12 +135,12 @@ namespace AdaptiveRadialFollow
             set { radialCore.RadialMultPower = value; }
         }
 
-        [Property("Minimum Smoothing Divisor"), DefaultPropertyValue(10.0d), ToolTip
+        [Property("Minimum Smoothing Divisor"), DefaultPropertyValue(15.0d), ToolTip
         (
             "As velocity along with an acceleration factor becomes lower than max radius threshold,\n" +
-            "initial smoothing coefficient approaches being divided by this number * some constant. It might be more complex than that but you don't have to worry about it.\n\n" +
+            "initial smoothing coefficient approaches being divided by this number * some constant. It might be slightly more complex than that but you don't have to worry about it.\n\n" +
             "Possible value range is 2 and up.\n\n" +
-            "Default value is 10.0"
+            "Default value is 15.0"
         )]
         public double MinimumSmoothingDivisor
         {
@@ -158,10 +174,10 @@ namespace AdaptiveRadialFollow
             set { radialCore.ConsoleLogging = value; }
         }
 
-        [Property("Accel Mult Power"), DefaultPropertyValue(7.0d), ToolTip
+        [Property("Accel Mult Power"), DefaultPropertyValue(9.0d), ToolTip
         (
             "Enable Console Logging above and look at the console. This specific setting affects only radius scaling. but is pretty important.\n\n" +
-            "Default value is 7.0"
+            "Default value is 9.0"
         )]
         public double AccelMultPower
         {
@@ -180,8 +196,9 @@ namespace AdaptiveRadialFollow
             set { radialCore.Advanced = value; }
         }
 
-        [Property("Raw Velocity Threshold"), DefaultPropertyValue(5.0d), ToolTip
+        [Property("Raw Velocity Threshold (Important)"), DefaultPropertyValue(5.0d), ToolTip
         (
+            "https://www.desmos.com/calculator/pw0r8hvezt\n\n" +
             "Regardless of acceleration, being above this velocity for 2 consecutive reports will override and max out radius.\n" +
             "Only active if 2.0 behavior is enabled.\n\n" +
             "Default value is 5.0"
@@ -194,7 +211,7 @@ namespace AdaptiveRadialFollow
 
         [Property("Angle Index Confidence"), DefaultPropertyValue(1.5d), ToolTip
         (
-            "Controls angle index confidence. Higher is weaker. Gets buggy below 1. Usually best to leave this alone.\n" +
+            "Controls angle index confidence. Higher is weaker. Gets buggy around 1 and below. Usually best to leave this alone.\n" +
             "Only active if 2.0 behavior is enabled.\n\n" +
             "Default value is 1.5"
         )]
@@ -206,7 +223,7 @@ namespace AdaptiveRadialFollow
 
         [Property("Angle Index Decel Confidence"), DefaultPropertyValue(3.0d), ToolTip
         (
-            "No idea how to describe this well. It's similar to above but in the same vein as raw accel threshold. Usually best to leave this alone.\n" +
+            "No idea how to describe this well. It's similar to above but acts in the same vein as raw accel threshold. Usually best to leave this alone.\n" +
             "Only active if 2.0 behavior is enabled.\n\n" +
             "Default value is 3.0"
         )]
@@ -216,8 +233,9 @@ namespace AdaptiveRadialFollow
             set { radialCore.xlerpconf = value; }
         }
 
-        [Property("Accel Mult Velocity Override"), DefaultPropertyValue(5.0d), ToolTip
+        [Property("Accel Mult Velocity Override (Important)"), DefaultPropertyValue(5.0d), ToolTip
         (
+            "https://www.desmos.com/calculator/pw0r8hvezt\n\n" +
             "Velocity divisor plays a role in accel mult calculation. This is a manual override. Nothing changes if this is the same as the velocity divisor\n" +
             "Only active if 2.0 behavior is enabled.\n\n" +
             "Default value is 5.0"

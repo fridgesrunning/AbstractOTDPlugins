@@ -1,6 +1,6 @@
-Reinstall after September 10, 2025
+Reinstall after 2025/10/1
 
-massive props to abstractqbit for making the original radial follow and making bezier interpolator, which i would recommend using with this over temporal resampler, because the cursor acts weird with temporal.
+massive props to abstractqbit for making the original radial follow and making bezier interpolator
 
 how to use for noobs
 
@@ -10,7 +10,8 @@ how to use for noobs
 4. alternate source
 5. owner: fridgesrunning
 6. apply
-7. profit
+7. https://www.desmos.com/calculator/pw0r8hvezt
+8. profit
 
 You should enable this in plugins explicitly before enabling any interpolator.
 The dll file seen is the current latest that I use.
