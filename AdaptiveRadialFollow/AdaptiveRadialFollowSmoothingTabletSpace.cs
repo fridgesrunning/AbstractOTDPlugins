@@ -124,7 +124,7 @@ namespace AdaptiveRadialFollow
             "As velocity along with an acceleration factor becomes lower than max radius threshold,\n" +
             "initial smoothing coefficient approaches being divided by this number * some constant. It might be more complex than that but you don't have to worry about it.\n\n" +
             "Possible value range is 2 and up.\n\n" +
-            "Default value is 5.0"
+            "Default value is 10.0"
         )]
         public double MinimumSmoothingDivisor
         {

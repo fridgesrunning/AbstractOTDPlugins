@@ -331,7 +331,7 @@ namespace AdaptiveRadialFollow
         //        }
         //    }
 
-            if ((vel > rawv & lastVel > rawv) || 
+            if ( // (vel > rawv & lastVel > rawv) || 
                 (accel > (1 / (6 / rawv)) & jerk > (1 / (6 / rawv)) & snap > (1 / (6 / rawv))) ||
                 (indexFactor > Math.Max(1 / (6 / rawv), angidx * vel)))
             {
@@ -340,6 +340,12 @@ namespace AdaptiveRadialFollow
             }
 
             holdVel2 = vel;
+
+            if (vel > rawv & lastVel > rawv)
+            {
+                vel *= 10 * vDiv;
+                accelMult = 2;
+            }
 
             if ((spinCheck > 8) && sinceSnap > 30)
             {
@@ -363,10 +369,21 @@ namespace AdaptiveRadialFollow
             }
                 else radiusGroundCount += 1;
 
+            if (accelMult < 1.99)
+            {
+                sinceAccelTop = 0;
+            }
+            else sinceAccelTop += 1;
+
                 // Radius max
             if (holdVel2 * Math.Pow(accelMult, accPower) >= vDiv)
             {
-                if (radiusGroundCount <= 1)
+                if ((radiusGroundCount <= 1) || 
+                
+                (vel > rawv & lastVel > rawv) && 
+                ((accel > (1 / (6 / rawv)) & jerk > (1 / (6 / rawv)) & snap > (1 / (6 / rawv))) ||
+                (indexFactor > Math.Max(1 / (6 / rawv), angidx * vel)) ||
+                (sinceAccelTop > 0)))
                 {
                     groundedPoint = cursor;
                 }
@@ -612,5 +629,7 @@ namespace AdaptiveRadialFollow
         public double distanceGround;
 
         public double doubt;
+
+        public double sinceAccelTop;
     }
 }
