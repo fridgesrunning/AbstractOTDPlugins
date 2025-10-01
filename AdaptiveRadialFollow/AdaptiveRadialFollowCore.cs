@@ -339,6 +339,8 @@ namespace AdaptiveRadialFollow
                 accelMult = 2;
             }
 
+            holdVel2 = vel;
+
             if ((spinCheck > 8) && sinceSnap > 30)
             {
             //    Console.WriteLine("spinning?");
@@ -353,26 +355,28 @@ namespace AdaptiveRadialFollow
         void GroundedRadius(IDeviceReport value, Vector2 target)
         {
                 // Not radius max
-            if ((rOuterAdjusted(value, cursor, rOuter, rInner) < rOuter * 0.99) || holdVel < rawv)
+            if (holdVel2 * Math.Pow(accelMult, accPower) < vDiv)
             {
                 radiusGroundCount = 0;
                 distanceGround = 0;
-            //    Console.WriteLine("0");
+              //  Console.WriteLine(holdVel2);
             }
                 else radiusGroundCount += 1;
 
                 // Radius max
-            if ((rOuterAdjusted(value, cursor, rOuter, rInner) >= rOuter * 0.99) || holdVel >= rawv)
+            if (holdVel2 * Math.Pow(accelMult, accPower) >= vDiv)
             {
-                if (radiusGroundCount < 1)
+                if (radiusGroundCount <= 1)
                 {
                     groundedPoint = cursor;
                 }
                     groundedDiff = target - groundedPoint;
                     distanceGround = Math.Sqrt(Math.Pow(groundedDiff.X, 2) + Math.Pow(groundedDiff.Y, 2));
-                //    Console.WriteLine(groundedPoint);
-                //    Console.WriteLine(distanceGround);
+                    
             }
+               //   Console.WriteLine(radiusGroundCount);
+               //   Console.WriteLine(distanceGround);
+                  //  Console.WriteLine(holdVel2 * Math.Pow(accelMult, accPower));
 
 
                 // Cursor is outside max outer radius while radius is usually maxed? Act as if radius doesn't exist for smooth movement
@@ -380,7 +384,6 @@ namespace AdaptiveRadialFollow
             {
                 vel = 0;
                 accel = -10 * rawThreshold;
-            //    Console.WriteLine("AAAAHHHHHHHH!!!!!");
             }
 
         }
@@ -551,6 +554,8 @@ namespace AdaptiveRadialFollow
         public double vel;
 
         public double holdVel;
+
+        public double holdVel2;
 
         public double lastVel;
 
