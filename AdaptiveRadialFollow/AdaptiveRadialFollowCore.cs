@@ -364,7 +364,7 @@ namespace AdaptiveRadialFollow
                 // Radius max
             if ((rOuterAdjusted(value, cursor, rOuter, rInner) >= rOuter * 0.99) || holdVel >= rawv)
             {
-                if (radiusGroundCount < 2 - doubt)  // Have a give of 1 non-max before next ground unless doubt is 1
+                if (radiusGroundCount < 1)
                 {
                     groundedPoint = cursor;
                 }
