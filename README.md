@@ -2,6 +2,7 @@
 Plugins originally made by AbstractQBit for [OpenTabletDriver](https://github.com/OpenTabletDriver/OpenTabletDriver), modified for niche use cases.
 
 ## [Adaptive Radial Follow Smoothing](AdaptiveRadialFollow/)
+https://www.desmos.com/calculator/pw0r8hvezt
 Are you lost? Click above. An experimental 2.0 build can be found.
 
 
