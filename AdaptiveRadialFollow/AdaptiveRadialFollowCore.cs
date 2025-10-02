@@ -348,7 +348,7 @@ namespace AdaptiveRadialFollow
 
             holdVel2 = vel;
 
-            if (vel > rawv & lastVel > rawv)
+            if ((distanceGround < rOuter) & (vel > rawv & lastVel > rawv))
             {
                 vel *= 10 * vDiv;
                 accelMult = 2;
