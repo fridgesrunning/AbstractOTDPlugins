@@ -3,6 +3,7 @@ Plugins originally made by AbstractQBit for [OpenTabletDriver](https://github.co
 
 ## [Adaptive Radial Follow Smoothing](AdaptiveRadialFollow/)
 Are you lost? Click above. Also check the calculator below.
+
 https://www.desmos.com/calculator/pw0r8hvezt
 
 
