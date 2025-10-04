@@ -42,32 +42,38 @@ namespace AdaptiveBezierInterpolator
         }
         private float tiltWeight;
 
-        [Property("Velocity Divisor"), DefaultPropertyValue(5.0f), ToolTip
+        [Property("Velocity Divisor (HOVER OVER THE TEXTBOX!!!)"), DefaultPropertyValue(100.0f), ToolTip
         (
-            "Make it the same. If you don't know what this means, what are you doing?"
+            "Enable ARF with your preferred settings (default behavior heavily recommended), but if you have an inside radius of 0, then consider increasing it slightly if you want to use this.\n" +
+            "Enable the checkbox below.\n" +
+            "Apply + save. Close OTD. Open OTD Daemon. Wave your cursor around.\n" +
+            "There should be a bunch of reports. These are all distance traveled since the last report filtered by ARF, maybe in pixels?\n" +
+            "There should be a bunch of zeroes, then a big number.\n" +
+            "Flow aim your cursor around. These should be smaller numbers.\n" +
+            "Choose a value that is in between these numbers."
         )]
         public float VelocityDivisor
         {
             get { return vDiv; }
-            set { vDiv = System.Math.Clamp(10 * value, 1.0f, 1000000.0f); }
+            set { vDiv = System.Math.Clamp(value, 0.1f, 1000000.0f); }
         }
         private float vDiv;
 
-        [Property("Aggressiveness"), DefaultPropertyValue(0.75f), ToolTip
+       [BooleanProperty("Console Logging", ""), DefaultPropertyValue(false), ToolTip
         (
-            "For testing purposes. Leave it at 0.75 unless you know what you're doing (read source code)"
+            "Reports velocity."
         )]
-        public float Aggressiveness
+        public bool ConsoleLogging
         {
-            get { return lerpMax; }
-            set { lerpMax = System.Math.Clamp(value, 0.0f, 1.0f); }
+            get { return cLog; }
+            set { cLog = value; }
         }
-        private float lerpMax;
+        public bool cLog;
 
         protected override void UpdateState()
         {
             float alpha = (float)(reportStopwatch.Elapsed.TotalSeconds * Frequency / reportMsAvg);
-            alpha = (float)Math.Pow(alpha, Math.Pow(2, -1 * Math.Max(accel / (vDiv / 4), 0)));
+     //       alpha = (float)Math.Pow(alpha, Math.Pow(Math.Abs(accel / vDiv), 2) + 1);
 
             if (State is ITiltReport tiltReport)
             {
@@ -77,10 +83,10 @@ namespace AdaptiveBezierInterpolator
 
             if (State is ITabletReport report && PenIsInRange())
             {
-                var lerp1 = Vector3.Lerp(previousTarget, controlPoint, alpha);
+                alpha = (float)Math.Clamp(alpha, -1, 1);
+                var lerp1 = Vector3.Lerp(Vector3.Lerp(previousTarget, groundedTarget, groundedIndex), controlPoint, (float)Math.Pow(alpha, 1 + groundedIndex));
                 var lerp2 = Vector3.Lerp(controlPoint, target, alpha);
-                var res = Vector3.Lerp(lerp1, lerp2, alpha);
-                res = Vector3.Lerp(res, controlPointNext, (float)Math.Clamp(Math.Pow(((accel + 1 * (6 / vDiv)) * (velocity / 10)) / (6 * vDiv), 9), 0, lerpMax));
+                var res = Vector3.Lerp(lerp1, lerp2, (float)Math.Pow(alpha, 1 - (float)Smootherstep(velocity, vDiv, 0) / 2));
                 report.Position = new Vector2(res.X, res.Y);
                 report.Pressure = report.Pressure == 0 ? 0 : (uint)(res.Z);
                 State = report;
@@ -110,22 +116,39 @@ namespace AdaptiveBezierInterpolator
                 emaTarget = vec2IsFinite(emaTarget) ? emaTarget : report.Position;
                 emaTarget += emaWeight * (report.Position - emaTarget);
 
+                lastVelocity = velocity;
                 velocity = (float)Math.Sqrt(Math.Pow(emaTarget.X - lastEmaTarget.X, 2) + Math.Pow(emaTarget.Y - lastEmaTarget.Y, 2));
                 accel = velocity - (float)Math.Sqrt(Math.Pow(lastEmaTarget.X - lastLastEmaTarget.X, 2) + Math.Pow(lastEmaTarget.Y - lastLastEmaTarget.Y, 2));
+
+                if (cLog)
+                Console.WriteLine(velocity);
+                
+
+                if ((Math.Abs(accel) > vDiv))
+                {
+                    if (accel > vDiv)
+                    {
+                    groundedPoint = lastEmaTarget;
+                    groundedTarget = new Vector3(groundedPoint, 0);
+                    }
+                    groundedIndex = 1;
+                }
 
                 controlPoint = controlPointNext;
                 controlPointNext = new Vector3(emaTarget, report.Pressure);
 
+
                 previousTarget = target;
-                target = Vector3.Lerp(controlPoint, controlPointNext, (float)Math.Pow(0.5, Math.Pow(2, -1 * Math.Max(accel + (velocity / 2) / (vDiv / 4), 0))));
+                target = Vector3.Lerp(controlPoint, controlPointNext, 0.5f + (float)Smootherstep(velocity, vDiv, 0) / 2);
+                groundedIndex = 0;
                 
             }
             else OnEmit();
         }
 
-        private Vector2 emaTarget, tiltTraget, previousTiltTraget, lastEmaTarget, lastLastEmaTarget;
-        private Vector3 controlPointNext, controlPoint, target, previousTarget;
-        float velocity, accel;
+        private Vector2 emaTarget, tiltTraget, previousTiltTraget, lastEmaTarget, lastLastEmaTarget, groundedPoint;
+        private Vector3 controlPointNext, controlPoint, target, previousTarget, groundedTarget;
+        float velocity, accel, lastVelocity, groundedIndex;
         private HPETDeltaStopwatch reportStopwatch = new HPETDeltaStopwatch();
         private float reportMsAvg = 5;
 
