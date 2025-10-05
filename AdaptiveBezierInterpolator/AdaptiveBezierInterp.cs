@@ -94,7 +94,7 @@ namespace AdaptiveBezierInterpolator
         public float AlphaThresholdOne
         {
             get { return aa1; }
-            set { aa1 = System.Math.Clamp(value, 0.0f, 0.5f); }
+            set { aa1 = System.Math.Clamp(value, 0.0f, 1.0f); }
         }
         private float aa1;
 
@@ -105,7 +105,7 @@ namespace AdaptiveBezierInterpolator
         public float AlphaThresholdTwo
         {
             get { return aa2; }
-            set { aa2 = System.Math.Clamp(value, 0.0f, 0.5f); }
+            set { aa2 = System.Math.Clamp(value, 0.0f, 1.0f); }
         }
         private float aa2;
 
@@ -116,7 +116,7 @@ namespace AdaptiveBezierInterpolator
         public float AlphaThresholdThree
         {
             get { return aa3; }
-            set { aa3 = System.Math.Clamp(value, 0.0f, 0.5f); }
+            set { aa3 = System.Math.Clamp(value, 0.0f, 1.0f); }
         }
         private float aa3;
 
@@ -129,7 +129,7 @@ namespace AdaptiveBezierInterpolator
         public float GroundedEMA
         {
             get { return gEma; }
-            set { gEma = System.Math.Clamp(value, 0.0f, 1000000.0f); }
+            set { gEma = System.Math.Clamp(value, 0.0f, 1.0f); }
         }
         private float gEma;
 
