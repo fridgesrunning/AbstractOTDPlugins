@@ -70,6 +70,18 @@ namespace AdaptiveBezierInterpolator
         }
         public bool cLog;
 
+        [BooleanProperty("Reverse Ground", ""), DefaultPropertyValue(false), ToolTip
+        (
+            "Don't know what the true effect of this is. Small chance to bug. Try and see if you like it.\n" +
+            "Not recommended if you have a smooth cursortrail. Looks bad."
+        )]
+        public bool ReverseGround
+        {
+            get { return rgToggle; }
+            set { rgToggle = value; }
+        }
+        public bool rgToggle;
+
         protected override void UpdateState()
         {
             float alpha = (float)(reportStopwatch.Elapsed.TotalSeconds * Frequency / reportMsAvg);
@@ -83,10 +95,21 @@ namespace AdaptiveBezierInterpolator
 
             if (State is ITabletReport report && PenIsInRange())
             {
-                alpha = (float)Math.Clamp(alpha, -1, 1);
-                var lerp1 = Vector3.Lerp(Vector3.Lerp(previousTarget, groundedTarget, groundedIndex), controlPoint, (float)Math.Pow(alpha, 1 + groundedIndex));
+                var res = new Vector3(0, 0, 0);
+                alpha = (float)Math.Clamp(alpha, 0, 1);
+                if (rgToggle && groundedIndex > 0.5)
+                {
+                    if (groundedClock > 0.5)
+                        res = Vector3.Lerp(controlPoint, controlPointNext, alpha * 0.35f);
+                        else res = Vector3.Lerp(Vector3.Lerp(lastControlPoint, controlPoint, alpha), target, 0.4f + alpha * 0.25f);
+
+                }
+                else
+                {
+                var lerp1 = Vector3.Lerp(Vector3.Lerp(previousTarget, controlPoint, lastGround), controlPoint, alpha);
                 var lerp2 = Vector3.Lerp(controlPoint, target, alpha);
-                var res = Vector3.Lerp(lerp1, lerp2, (float)Math.Pow(alpha, 1 - (float)Smootherstep(velocity, vDiv, 0) / 2));
+                res = Vector3.Lerp(lerp1, lerp2, (float)Math.Pow(alpha, 1 - (float)Smootherstep(velocity, vDiv, 0) / 2));
+                }
                 report.Position = new Vector2(res.X, res.Y);
                 report.Pressure = report.Pressure == 0 ? 0 : (uint)(res.Z);
                 State = report;
@@ -122,33 +145,45 @@ namespace AdaptiveBezierInterpolator
 
                 if (cLog)
                 Console.WriteLine(velocity);
-                
 
-                if ((Math.Abs(accel) > vDiv))
+                if (rgToggle)
                 {
-                    if (accel > vDiv)
+                    lastGround = 0;
+                    if (groundedIndex > 0.5 && groundedClock < 0.5)
+                    lastGround = 1;
+                
+                    groundedIndex = 0;
+                    groundedClock = 0;
+
+                    if ((Math.Abs(accel) > vDiv))
                     {
-                    groundedPoint = lastEmaTarget;
-                    groundedTarget = new Vector3(groundedPoint, 0);
+                        if (accel > vDiv)
+                        {
+                            groundedPoint = lastEmaTarget;
+                            groundedTarget = new Vector3(groundedPoint, 0);
+                            groundedClock = 1;
+                        }
+                        groundedIndex = 1;
                     }
-                    groundedIndex = 1;
+
                 }
 
+                lastControlPoint = controlPoint;
                 controlPoint = controlPointNext;
                 controlPointNext = new Vector3(emaTarget, report.Pressure);
 
 
                 previousTarget = target;
                 target = Vector3.Lerp(controlPoint, controlPointNext, 0.5f + (float)Smootherstep(velocity, vDiv, 0) / 2);
-                groundedIndex = 0;
+                
                 
             }
             else OnEmit();
         }
 
         private Vector2 emaTarget, tiltTraget, previousTiltTraget, lastEmaTarget, lastLastEmaTarget, groundedPoint;
-        private Vector3 controlPointNext, controlPoint, target, previousTarget, groundedTarget;
-        float velocity, accel, lastVelocity, groundedIndex;
+        private Vector3 controlPointNext, controlPoint, lastControlPoint, target, previousTarget, groundedTarget;
+        float velocity, accel, lastVelocity, groundedIndex, groundedClock, lastGround;
         private HPETDeltaStopwatch reportStopwatch = new HPETDeltaStopwatch();
         private float reportMsAvg = 5;
 
