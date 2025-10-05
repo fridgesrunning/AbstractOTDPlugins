@@ -70,10 +70,15 @@ namespace AdaptiveBezierInterpolator
         }
         public bool cLog;
 
-        [BooleanProperty("Reverse Ground", ""), DefaultPropertyValue(false), ToolTip
+        [BooleanProperty("Reverse Ground (Enables Below Settings)", ""), DefaultPropertyValue(false), ToolTip
         (
-            "Don't know what the true effect of this is. Small chance to bug. Try and see if you like it.\n" +
-            "Not recommended if you have a smooth cursortrail. Looks bad."
+            "When grounding is detected:\n" +
+            "attempts to use the next two reports to interpolate, instead of one.\n" +
+            "Very small chance of bugs, but if your tablet is cursed:\n" +
+            "decrease Grounded EMA. If that doesn't work,\n" +
+            "decrease alpha1 or alpha3.\n"+
+            "alpha2 should always be equal to or slightly larger than alpha1, never smaller.\n" +
+            "You should be fine with defaults though unless you have a smooth cursortrail. If so, try 0.75 Grounded EMA."
         )]
         public bool ReverseGround
         {
@@ -81,6 +86,52 @@ namespace AdaptiveBezierInterpolator
             set { rgToggle = value; }
         }
         public bool rgToggle;
+
+        [Property("alpha 1"), DefaultPropertyValue(0.5f), ToolTip
+        (
+            "alpha"
+        )]
+        public float AlphaThresholdOne
+        {
+            get { return aa1; }
+            set { aa1 = System.Math.Clamp(value, 0.0f, 0.5f); }
+        }
+        private float aa1;
+
+        [Property("alpha 2"), DefaultPropertyValue(0.5f), ToolTip
+        (
+            "alpha"
+        )]
+        public float AlphaThresholdTwo
+        {
+            get { return aa2; }
+            set { aa2 = System.Math.Clamp(value, 0.0f, 0.5f); }
+        }
+        private float aa2;
+
+        [Property("alpha 3"), DefaultPropertyValue(0.5f), ToolTip
+        (
+            "alpha"
+        )]
+        public float AlphaThresholdThree
+        {
+            get { return aa3; }
+            set { aa3 = System.Math.Clamp(value, 0.0f, 0.5f); }
+        }
+        private float aa3;
+
+        [Property("Grounded EMA"), DefaultPropertyValue(1.0f), ToolTip
+        (
+            "EMA weight applied only when grounded.\n" +
+            "If using a normal cursor, it should be 1 unless you prefer 0.75.\n" +
+            "If using a smooth cursortrail, it should be 0.75 or some other value unless you prefer 1."
+        )]
+        public float GroundedEMA
+        {
+            get { return gEma; }
+            set { gEma = System.Math.Clamp(value, 0.0f, 1000000.0f); }
+        }
+        private float gEma;
 
         protected override void UpdateState()
         {
@@ -100,8 +151,8 @@ namespace AdaptiveBezierInterpolator
                 if (rgToggle && groundedIndex > 0.5)
                 {
                     if (groundedClock > 0.5)
-                        res = Vector3.Lerp(controlPoint, controlPointNext, alpha * 0.35f);
-                        else res = Vector3.Lerp(Vector3.Lerp(lastControlPoint, controlPoint, alpha), target, 0.4f + alpha * 0.25f);
+                        res = Vector3.Lerp(controlPoint, Vector3.Lerp(target, controlPointNext, alpha), alpha * aa1);
+                        else res = Vector3.Lerp(Vector3.Lerp(previousTarget, controlPoint, alpha), target, aa2 + alpha * aa3);
 
                 }
                 else
@@ -149,9 +200,21 @@ namespace AdaptiveBezierInterpolator
                 if (rgToggle)
                 {
                     lastGround = 0;
-                    if (groundedIndex > 0.5 && groundedClock < 0.5)
-                    lastGround = 1;
-                
+                    if (groundedIndex > 0.5)
+                    {
+                        if (groundedClock > 0.5)
+                        {
+                            holdEma = emaWeight;
+                            emaWeight = gEma;
+                            emaTarget = vec2IsFinite(emaTarget) ? emaTarget : report.Position;
+                            emaTarget += emaWeight * (report.Position - emaTarget);
+                        }
+                        else 
+                        {
+                            lastGround = 1;
+                            emaWeight = holdEma;
+                        }
+                    }
                     groundedIndex = 0;
                     groundedClock = 0;
 
@@ -183,7 +246,7 @@ namespace AdaptiveBezierInterpolator
 
         private Vector2 emaTarget, tiltTraget, previousTiltTraget, lastEmaTarget, lastLastEmaTarget, groundedPoint;
         private Vector3 controlPointNext, controlPoint, lastControlPoint, target, previousTarget, groundedTarget;
-        float velocity, accel, lastVelocity, groundedIndex, groundedClock, lastGround;
+        float velocity, accel, lastVelocity, groundedIndex, groundedClock, lastGround, holdEma;
         private HPETDeltaStopwatch reportStopwatch = new HPETDeltaStopwatch();
         private float reportMsAvg = 5;
 
