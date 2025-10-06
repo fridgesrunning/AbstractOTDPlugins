@@ -83,7 +83,6 @@ namespace AdaptiveBezierInterpolator
             "This appears to be less 'smooth' than default behavior when the checkbox is disabled, but it gives a 'crisper' look.\n" +
             "If alpha 2 is 1 and alpha 3 is 0, then snapping is guaranteed to be lower latency than default settings\n" +
             "This comes in the form of (0 0 1 0) which gives a harder snap look or (0 0.5 1 0) which gives a low-latency snap while still preserving some smoothness. Recommended to try out.\n" +
-            "alpha 0 should be between 0 and 0.5. alpha 1 should add up with alpha 0 to make 0.5. alpha 2 should be equal to or greater than alpha1. alpha3 should add up with alpha 2 to make 1.\n" +
             "If this bugs out then you're probably using dumb settings. If using settings I listed, try reducing Grounded EMA slightly.\n\n" +
             "This only really has a notable effect on larger radii on ARF.\n" +
             "If you can't tell a difference, leave disabled."
