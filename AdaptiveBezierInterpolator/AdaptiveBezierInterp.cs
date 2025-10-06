@@ -197,7 +197,8 @@ namespace AdaptiveBezierInterpolator
 
             if (State is ITabletReport report)
             {
-                var consumeDelta = (float)reportStopwatch.Restart().TotalMilliseconds;
+                float holdTime = (float)reportStopwatch.Restart().TotalMilliseconds;
+                var consumeDelta = holdTime;
                 if (consumeDelta < 150)
                     reportMsAvg += ((consumeDelta - reportMsAvg) * 0.1f);
 
@@ -209,8 +210,8 @@ namespace AdaptiveBezierInterpolator
                 emaTarget += emaWeight * (report.Position - emaTarget);
 
                 lastVelocity = velocity;
-                velocity = (float)Math.Sqrt(Math.Pow(emaTarget.X - lastEmaTarget.X, 2) + Math.Pow(emaTarget.Y - lastEmaTarget.Y, 2));
-                accel = velocity - (float)Math.Sqrt(Math.Pow(lastEmaTarget.X - lastLastEmaTarget.X, 2) + Math.Pow(lastEmaTarget.Y - lastLastEmaTarget.Y, 2));
+                velocity = (float)Math.Sqrt(Math.Pow(emaTarget.X - lastEmaTarget.X, 2) + Math.Pow(emaTarget.Y - lastEmaTarget.Y, 2)) * (8 / holdTime);
+                accel = velocity - (float)Math.Sqrt(Math.Pow(lastEmaTarget.X - lastLastEmaTarget.X, 2) + Math.Pow(lastEmaTarget.Y - lastLastEmaTarget.Y, 2)) * (8 / holdTime);
 
                 if (cLog)
                 Console.WriteLine(velocity);
