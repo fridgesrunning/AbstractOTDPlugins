@@ -165,6 +165,7 @@ namespace AdaptiveRadialFollow
         public Vector2 Filter(IDeviceReport value, Vector2 target)
         {
                 // Produce numbers (velocity, accel, etc)
+                holdTime = stopwatch.Restart().TotalMilliseconds;
             UpdateReports(value, target);
 
                 // Self explanatory
@@ -193,7 +194,7 @@ namespace AdaptiveRadialFollow
             cursor = LerpedCursor((float)lerpScale, cursor, target);    // Jump to raw report if certain conditions are fulfilled
 
                 // Catch NaNs and pen redetection
-            if (!(float.IsFinite(cursor.X) & float.IsFinite(cursor.Y) & stopwatch.Restart().TotalMilliseconds < 50))
+            if (!(float.IsFinite(cursor.X) & float.IsFinite(cursor.Y) & holdTime < 50))
                 cursor = target;
 
 
@@ -245,6 +246,7 @@ namespace AdaptiveRadialFollow
         {
             if (value is ITabletReport report)
             {
+
                 last3Report = lastLastReport;
                 lastLastReport = lastReport;
                 lastReport = currReport;
@@ -255,11 +257,11 @@ namespace AdaptiveRadialFollow
                 thirddiff = lastLastReport - last3Report;
 
                 lastVel = vel;
-                vel =  Math.Sqrt(Math.Pow(diff.X / xDiv, 2) + Math.Pow(diff.Y, 2)) / 100;
+                vel =  ((Math.Sqrt(Math.Pow(diff.X / xDiv, 2) + Math.Pow(diff.Y, 2)) / 12.5) / holdTime);
                 holdVel = vel;
 
                 lastAccel = accel;
-                accel = vel - Math.Sqrt(Math.Pow(seconddiff.X / xDiv, 2) + Math.Pow(seconddiff.Y, 2)) / 100;
+                accel = vel - ((Math.Sqrt(Math.Pow(seconddiff.X / xDiv, 2) + Math.Pow(seconddiff.Y, 2)) / 12.5) / holdTime);
 
                     // Has less use than it probably should.
                 lastJerk = jerk;
@@ -638,5 +640,7 @@ namespace AdaptiveRadialFollow
         public double doubt;
 
         public double sinceAccelTop;
+
+        public double holdTime;
     }
 }

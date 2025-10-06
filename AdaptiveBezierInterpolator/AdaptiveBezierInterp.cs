@@ -152,7 +152,6 @@ namespace AdaptiveBezierInterpolator
         protected override void UpdateState()
         {
             float alpha = (float)(reportStopwatch.Elapsed.TotalSeconds * Frequency / reportMsAvg);
-     //       alpha = (float)Math.Pow(alpha, Math.Pow(Math.Abs(accel / vDiv), 2) + 1);
 
             if (State is ITiltReport tiltReport)
             {
@@ -168,8 +167,11 @@ namespace AdaptiveBezierInterpolator
                 {
                     if (groundedClock > 0.5)
                         res = Vector3.Lerp(controlPoint, Vector3.Lerp(target, controlPointNext, aa0 + alpha * aa1), aa0 + alpha * aa1);
-                        else res = Vector3.Lerp(Vector3.Lerp(previousTarget, controlPoint, aa2 + alpha * aa3), target, aa2 + alpha * aa3);
-
+                        else
+                         {
+                            res = Vector3.Lerp(Vector3.Lerp(previousTarget, controlPoint, aa2 + alpha * aa3), target, aa2 + alpha * aa3);
+                            res = Vector3.Lerp(res, controlPointNext, (float)Smootherstep(velocity / vDiv, 0.1, 0));
+                         }
                 }
                 else
                 {
