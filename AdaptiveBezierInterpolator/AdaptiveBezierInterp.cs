@@ -73,13 +73,19 @@ namespace AdaptiveBezierInterpolator
 
         [BooleanProperty("Reverse Ground (Enables Below Settings)", ""), DefaultPropertyValue(false), ToolTip
         (
-            "When grounding is detected:\n" +
-            "attempts to use the next two reports to interpolate, instead of one.\n" +
-            "Very small chance of bugs, but if your tablet is cursed:\n" +
-            "decrease Grounded EMA. If that doesn't work,\n" +
-            "decrease alpha1 or alpha3.\n"+
-            "alpha2 should always be equal to or slightly larger than alpha1, never smaller.\n" +
-            "You should be fine with defaults though unless you have a smooth cursortrail. If so, try 0.75 Grounded EMA."
+            "When grounding is detected, attempts to use the next two reports to interpolate, instead of default behavior,\n" +
+            "and allows alpha to be manipulated in this situation.\n" +
+            "Alpha is an approximated value from 0 - 1 that goes from 0 to 1 in a report to interpolate between positions.\n" +
+            "alpha 0 is the startpoint for the first detected report with grounding. alpha1 is the multiplier given to alpha during this report. (0.5 is effectively 1, not recommended to go higher)\n" +
+            "alpha 2 and alpha 3 are like alpha 0 and alpha 1 respectively, but for the second report with grounded detection.\n" +
+            "On the report after this, the normal behavior is changed ever so slightly in hopes of not bugging out, but if you use good settings you shouldn't care about this.\n" +
+            "Using defaults (0.0 0.5 0.5 0.5), the first alpha starts at 0, finishes at a normal value, then the second starts at a normal value then ends at a normal value.\n" +
+            "This appears to be less 'smooth' than default behavior when the checkbox is disabled, but it gives a 'crisper' look.\n" +
+            "If alpha 2 is 1 and alpha 3 is 0, then snapping is guaranteed to be lower latency than default settings\n" +
+            "This comes in the form of (0 0 1 0) which gives a harder snap look or (0 0.5 1 0) which gives a low-latency snap while still preserving some smoothness. Recommended to try out.\n" +
+            "alpha 0 should be between 0 and 0.5. alpha 1 should add up with alpha 0 to make 0.5. alpha 2 should be equal to or greater than alpha1. alpha3 should add up with alpha 1 to make (1 - alpha0 - (alpha2 - alpha1)).\n" +
+            "If this bugs out then you're probably using dumb settings. If using settings I listed, try reducing Grounded EMA slightly.\n" +
+            "If you can't tell a difference, leave disabled."
         )]
         public bool ReverseGround
         {
@@ -87,6 +93,17 @@ namespace AdaptiveBezierInterpolator
             set { rgToggle = value; }
         }
         public bool rgToggle;
+
+        [Property("alpha 0"), DefaultPropertyValue(0.0f), ToolTip
+        (
+            "alpha"
+        )]
+        public float AlphaThresholdZero
+        {
+            get { return aa0; }
+            set { aa0 = System.Math.Clamp(value, 0.0f, 1.0f); }
+        }
+        private float aa0;
 
         [Property("alpha 1"), DefaultPropertyValue(0.5f), ToolTip
         (
@@ -123,9 +140,7 @@ namespace AdaptiveBezierInterpolator
 
         [Property("Grounded EMA"), DefaultPropertyValue(1.0f), ToolTip
         (
-            "EMA weight applied only when grounded.\n" +
-            "If using a normal cursor, it should be 1 unless you prefer 0.75.\n" +
-            "If using a smooth cursortrail, it should be 0.75 or some other value unless you prefer 1."
+            "EMA weight applied only when grounded. If you can't tell a difference, leave at 1."
         )]
         public float GroundedEMA
         {
@@ -152,7 +167,7 @@ namespace AdaptiveBezierInterpolator
                 if (rgToggle && groundedIndex > 0.5)
                 {
                     if (groundedClock > 0.5)
-                        res = Vector3.Lerp(controlPoint, Vector3.Lerp(target, controlPointNext, alpha), alpha * aa1);
+                        res = Vector3.Lerp(controlPoint, Vector3.Lerp(target, controlPointNext, alpha), aa0 + alpha * aa1);
                         else res = Vector3.Lerp(Vector3.Lerp(previousTarget, controlPoint, alpha), target, aa2 + alpha * aa3);
 
                 }
