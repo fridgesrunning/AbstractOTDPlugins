@@ -12,7 +12,7 @@ namespace AdaptiveRadialFollow
         public AdaptiveRadialFollowSmoothingTabletSpace() : base() { }
         public PipelinePosition Position => PipelinePosition.PreTransform;
 
-        [Property("X Divisor (Important)"), DefaultPropertyValue(1.0d), ToolTip
+        [Property("X Divisor (Important) (Hover Over The Textbox)"), DefaultPropertyValue(1.0d), ToolTip
         (
             "https://www.desmos.com/calculator/pw0r8hvezt\n\n" +
             "Accounts for the discrepancy between tablet aspect ratio and screen aspect ratio.\n" +
@@ -50,6 +50,7 @@ namespace AdaptiveRadialFollow
             "This effectively creates a deadzone in which no movement is produced.\n\n" +
             "Unit of measurement is millimetres.\n" +
             "The value should be >= 0 and <= outer radius.\n\n" +
+            "That was the original description. This should be equal to outer radius in most cases.\n\n" +
             "Default value is 10.0 mm"
         )]
         public double InnerRadius
@@ -58,11 +59,11 @@ namespace AdaptiveRadialFollow
             set { radialCore.InnerRadius = value; }
         }
 
-        [Property("Initial Smoothing Coefficient"), DefaultPropertyValue(0.9d), ToolTip
+        [Property("Initial Smoothing Coefficient"), DefaultPropertyValue(0.5d), ToolTip
         (
             "Smoothing coefficient determines how fast or slow the cursor will descend from the outer radius to the inner.\n\n" +
             "Possible value range is 0.0001..1, higher values mean more smoothing (slower descent to the inner radius).\n\n" +
-            "Default value is 0.9"
+            "Default value is 0.5"
         )]
         public double SmoothingCoefficient
         {
@@ -164,7 +165,7 @@ namespace AdaptiveRadialFollow
         [BooleanProperty("Console Logging", ""), DefaultPropertyValue(false), ToolTip
         (
             "Each report, info will be printed in console.\n\n" +
-            "If the rate of prints exceeds report rate, then that is bad and this filter is not working as well as it could be. read the readme\n" +
+            "If the rate of prints exceeds report rate, then that is bad and this filter is not working. Screenshot your area, reset all settings, then re-enable this filter first.\n" +
             "You can use this to make sure that your parameters and thresholds are right.\n\n" +
             "Default value is false"
         )]
