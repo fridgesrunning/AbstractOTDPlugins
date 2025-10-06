@@ -25,7 +25,8 @@ namespace AdaptiveBezierInterpolator
         public float SmoothingFactor
         {
             get { return emaWeight; }
-            set { emaWeight = System.Math.Clamp(value, 0.0f, 1.0f); }
+            set { emaWeight = System.Math.Clamp(value, 0.0f, 1.0f);
+            holdEma = emaWeight; }
         }
         private float emaWeight;
 
@@ -200,11 +201,13 @@ namespace AdaptiveBezierInterpolator
                 if (rgToggle)
                 {
                     lastGround = 0;
+                    emaWeight = holdEma;
                     if (groundedIndex > 0.5)
                     {
+                        
                         if (groundedClock > 0.5)
                         {
-                            holdEma = emaWeight;
+
                             emaWeight = gEma;
                             emaTarget = vec2IsFinite(emaTarget) ? emaTarget : report.Position;
                             emaTarget += emaWeight * (report.Position - emaTarget);
@@ -212,7 +215,6 @@ namespace AdaptiveBezierInterpolator
                         else 
                         {
                             lastGround = 1;
-                            emaWeight = holdEma;
                         }
                     }
                     groundedIndex = 0;
