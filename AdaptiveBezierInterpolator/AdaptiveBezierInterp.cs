@@ -74,18 +74,16 @@ namespace AdaptiveBezierInterpolator
         [BooleanProperty("Reverse Ground (Enables Below Settings)", ""), DefaultPropertyValue(false), ToolTip
         (
             "When grounding is detected, attempts to use the next two reports to interpolate, instead of default behavior,\n" +
-            "and allows alpha to be manipulated in this situation.\n" +
+            "and allows alpha to be manipulated in this situation.\n\n" +
             "Alpha is an approximated value from 0 - 1 that goes from 0 to 1 in a report to interpolate between positions.\n" +
-            "alpha 0 is the startpoint for the first detected report with grounding. alpha1 is the multiplier given to alpha during this report. (0.5 is effectively 1, not recommended to go higher)\n" +
+            "alpha 0 is the startpoint for the first detected report with grounding. alpha1 is the multiplier given to alpha during this report. (0.5 is effectively 1 but we're interping through 2 reports so its fine)\n" +
             "alpha 2 and alpha 3 are like alpha 0 and alpha 1 respectively, but for the second report with grounded detection.\n" +
-            "On the report after this, the normal behavior is changed ever so slightly in hopes of not bugging out, but if you use good settings you shouldn't care about this.\n" +
+            "On the report after this, the normal behavior is changed ever so slightly in hopes of not bugging out, but if you use good settings you shouldn't care about this.\n\n" +
             "Using defaults (0.0 0.5 0.5 0.5), the first alpha starts at 0, finishes at a normal value, then the second starts at a normal value then ends at a normal value.\n" +
             "This appears to be less 'smooth' than default behavior when the checkbox is disabled, but it gives a 'crisper' look.\n" +
-            "If alpha 2 is 1 and alpha 3 is 0, then snapping is guaranteed to be lower latency than default settings\n" +
-            "This comes in the form of (0 0 1 0) which gives a harder snap look or (0 0.5 1 0) which gives a low-latency snap while still preserving some smoothness. Recommended to try out.\n" +
-            "If this bugs out then you're probably using dumb settings. If using settings I listed, try reducing Grounded EMA slightly.\n\n" +
-            "This only really has a notable effect on larger radii on ARF.\n" +
-            "If you can't tell a difference, leave disabled."
+            "Other settings that work are (1 0 1 0) for lowest latency, (0 1 1 0) for low latency but smooth, (0 0 1 0) for a fat snap, and (0 0 0 1) for an extra report of hang + 1-report transition.\n\n" +
+            "If it bugs out on smooth cursortrail (test with one) then your settings are probably bad. If not, your tablet is reporting too unevenly. Leave this disabled.\n" +
+            "If you can't tell a difference, then leave disabled."
         )]
         public bool ReverseGround
         {
@@ -158,7 +156,7 @@ namespace AdaptiveBezierInterpolator
             get { return xToggle; }
             set { xToggle = value; }
         }
-        public bool cLog;
+        public bool xToggle;
 
         protected override void ConsumeState()
         {
@@ -203,13 +201,15 @@ namespace AdaptiveBezierInterpolator
                             emaWeight = gEma;
                             emaTarget = vec2IsFinite(emaTarget) ? emaTarget : report.Position;
                             emaTarget += emaWeight * (report.Position - emaTarget);
+                            holdGround = 1;
                         }
                         else 
                         {
                             lastGround = 1;
+                            holdGround = 0;
                         }
                     }
-                    groundedIndex = 0;
+                    groundedIndex = holdGround;
                     groundedClock = 0;
 
                     if ((Math.Abs(accel) > vDiv))
@@ -222,13 +222,20 @@ namespace AdaptiveBezierInterpolator
                         }
                         groundedIndex = 1;
                     }
+                    if (groundedIndex == 1)
+                    {
+                    groundCount +=1;
 
+                    if (groundCount > 2)
+                    groundedIndex = 0;
+                    }
+                    else groundCount = 0;
+                    Console.WriteLine(groundedIndex);
                 }
 
                 lastControlPoint = controlPoint;
                 controlPoint = controlPointNext;
                 controlPointNext = new Vector3(emaTarget, report.Pressure);
-
 
                 previousTarget = target;
                 target = Vector3.Lerp(controlPoint, controlPointNext, 0.5f + (float)Smootherstep(velocity, vDiv, 0) / 2);
@@ -260,7 +267,7 @@ namespace AdaptiveBezierInterpolator
                         res = Vector3.Lerp(controlPoint, Vector3.Lerp(target, controlPointNext, aa0 + alpha * aa1), aa0 + alpha * aa1);
                         else
                          {
-                            res = Vector3.Lerp(Vector3.Lerp(previousTarget, controlPoint, aa2 + alpha * aa3), target, aa2 + alpha * aa3);
+                            res = Vector3.Lerp(Vector3.Lerp(Vector3.Lerp(previousTarget, controlPoint, aa2 + alpha * aa3), target, aa2 + alpha * aa3), controlPointNext, aa0 + aa1);
                             res = Vector3.Lerp(res, controlPointNext, (float)Smootherstep(velocity / vDiv, 0.1, 0));
                          }
                 }
@@ -279,7 +286,7 @@ namespace AdaptiveBezierInterpolator
 
         private Vector2 emaTarget, tiltTraget, previousTiltTraget, lastEmaTarget, lastLastEmaTarget, groundedPoint;
         private Vector3 controlPointNext, controlPoint, lastControlPoint, target, previousTarget, groundedTarget;
-        float velocity, accel, lastVelocity, groundedIndex, groundedClock, lastGround, holdEma;
+        float velocity, accel, lastVelocity, groundedIndex, groundedClock, lastGround, holdEma, groundCount, holdGround;
         private HPETDeltaStopwatch reportStopwatch = new HPETDeltaStopwatch();
         private float reportMsAvg = 5;
 
