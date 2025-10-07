@@ -16,7 +16,8 @@ namespace AdaptiveRadialFollow
         (
             "https://www.desmos.com/calculator/pw0r8hvezt\n\n" +
             "Accounts for the discrepancy between tablet aspect ratio and screen aspect ratio.\n" +
-            "Default value is 1.0"
+            "Default value is 1.0\n" +
+            "Discord for help: shreddism"
         )]
         public double xDivisor
         {
