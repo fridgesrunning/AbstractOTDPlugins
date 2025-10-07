@@ -230,7 +230,6 @@ namespace AdaptiveBezierInterpolator
                     groundedIndex = 0;
                     }
                     else groundCount = 0;
-                    Console.WriteLine(groundedIndex);
                 }
 
                 lastControlPoint = controlPoint;
