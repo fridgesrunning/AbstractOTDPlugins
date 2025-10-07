@@ -218,6 +218,7 @@ namespace AdaptiveBezierInterpolator
                         {
                             groundedPoint = lastEmaTarget;
                             groundedTarget = new Vector3(groundedPoint, 0);
+                            if (groundCount < 1)
                             groundedClock = 1;
                         }
                         groundedIndex = 1;
@@ -225,12 +226,23 @@ namespace AdaptiveBezierInterpolator
                     if (groundedIndex == 1)
                     {
                     groundCount +=1;
-
-                    if (groundCount > 2)
-                    groundedIndex = 0;
                     }
+                    if (groundCount > 2)
+                    {
+                    groundedIndex = 0;
+                    groundCount = 0;
+                    }
+
                     else groundCount = 0;
                 }
+
+                if (groundCount > 2)
+                    {
+                    groundedIndex = 0;
+                    groundCount = 0;
+                    }
+
+                    // I know what you're thinking. This idiot put the same code twice. But it didn't work until I did that. Maybe I just didn't replace the build but I'm keeping it here as a symbol of rememberance for the horrible mess above
 
                 lastControlPoint = controlPoint;
                 controlPoint = controlPointNext;
@@ -238,6 +250,12 @@ namespace AdaptiveBezierInterpolator
 
                 previousTarget = target;
                 target = Vector3.Lerp(controlPoint, controlPointNext, 0.5f + (float)Smootherstep(velocity, vDiv, 0) / 2);
+
+                Console.WriteLine("-------------------");
+                Console.WriteLine(groundedIndex);
+                Console.WriteLine(groundedClock);
+                Console.WriteLine(groundCount);
+                Console.WriteLine("-------------------");
                 
                 if (xToggle)
                 UpdateState();
