@@ -251,12 +251,6 @@ namespace AdaptiveBezierInterpolator
                 previousTarget = target;
                 target = Vector3.Lerp(controlPoint, controlPointNext, 0.5f + (float)Smootherstep(velocity, vDiv, 0) / 2);
 
-                Console.WriteLine("-------------------");
-                Console.WriteLine(groundedIndex);
-                Console.WriteLine(groundedClock);
-                Console.WriteLine(groundCount);
-                Console.WriteLine("-------------------");
-                
                 if (xToggle)
                 UpdateState();
                 
