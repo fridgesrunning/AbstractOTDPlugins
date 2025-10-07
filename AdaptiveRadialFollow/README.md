@@ -1,4 +1,4 @@
-Reinstall after 2025/10/1
+Check below desmos for updates
 
 massive props to abstractqbit for making the original radial follow and making bezier interpolator
 
