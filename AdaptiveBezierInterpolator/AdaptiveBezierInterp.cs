@@ -51,7 +51,8 @@ namespace AdaptiveBezierInterpolator
             "There should be a bunch of reports. These are all distance traveled since the last report filtered by ARF, maybe in pixels?\n" +
             "There should be a bunch of zeroes, then a big number.\n" +
             "Flow aim your cursor around. These should be smaller numbers.\n" +
-            "Choose a value that is in between these numbers."
+            "Choose a value that is in between these numbers.\n" +
+            "Discord for help: shreddism"
         )]
         public float VelocityDivisor
         {
@@ -136,17 +137,6 @@ namespace AdaptiveBezierInterpolator
         }
         private float aa3;
 
-        [Property("Grounded EMA"), DefaultPropertyValue(1.0f), ToolTip
-        (
-            "EMA weight applied only when grounded. If you can't tell a difference, leave at 1."
-        )]
-        public float GroundedEMA
-        {
-            get { return gEma; }
-            set { gEma = System.Math.Clamp(value, 0.0f, 1.0f); }
-        }
-        private float gEma;
-
         [BooleanProperty("Wire Update To Consume", ""), DefaultPropertyValue(true), ToolTip
         (
             "Does the same thing as TemporalResampler's 'extraFrames' option. This should be fine."
@@ -157,6 +147,18 @@ namespace AdaptiveBezierInterpolator
             set { xToggle = value; }
         }
         public bool xToggle;
+
+        [BooleanProperty("Dot AntiLatency", ""), DefaultPropertyValue(false), ToolTip
+        (
+            "Very rudimentary, tries to reduce percieved latency on jumps if using smaller radii. Needs Velocity Divisor to be configured correctly.\n" +
+            "I mean, so does everything else, but this too."
+        )]
+        public bool DotBoost
+        {
+            get { return dToggle; }
+            set { dToggle = value; }
+        }
+        public bool dToggle;
 
         protected override void ConsumeState()
         {
@@ -188,8 +190,6 @@ namespace AdaptiveBezierInterpolator
                 if (cLog)
                 Console.WriteLine(velocity);
 
-                if (rgToggle)
-                {
                     lastGround = 0;
                     emaWeight = holdEma;
                     if (groundedIndex > 0.5)
@@ -197,16 +197,13 @@ namespace AdaptiveBezierInterpolator
                         
                         if (groundedClock > 0.5)
                         {
-
-                            emaWeight = gEma;
-                            emaTarget = vec2IsFinite(emaTarget) ? emaTarget : report.Position;
-                            emaTarget += emaWeight * (report.Position - emaTarget);
                             holdGround = 1;
                         }
                         else 
                         {
                             lastGround = 1;
                             holdGround = 0;
+                            dotVel = velocity;
                         }
                     }
                     groundedIndex = holdGround;
@@ -219,22 +216,54 @@ namespace AdaptiveBezierInterpolator
                             groundedPoint = lastEmaTarget;
                             groundedTarget = new Vector3(groundedPoint, 0);
                             if (groundCount < 1)
+                            {
+                            groundDirection = Vector2.Normalize(emaTarget - lastEmaTarget);
                             groundedClock = 1;
+                            }
                         }
                         groundedIndex = 1;
                     }
-                    if (groundedIndex == 1)
+
+                    if (groundedIndex > 0)
                     {
-                    groundCount +=1;
+                        groundCount +=1;
                     }
+                    else groundCount = 0;
+                    
                     if (groundCount > 2)
                     {
-                    groundedIndex = 0;
-                    groundCount = 0;
+                        groundedIndex = 0;
+                        groundedClock = 0;
+                        groundCount = 0;
+                        dotVel = velocity * 2 + 1000000.0f;
                     }
 
-                    else groundCount = 0;
-                }
+                    if (groundedIndex < 0.5)
+                    {
+                        if ((velocity > 0.9 * dotVel) && (velocity > vDiv / 4))
+                        {   
+                            holdDot = (float)Vector2.Dot(groundDirection, Vector2.Normalize(emaTarget - lastEmaTarget));
+                            dotCount = 1;
+                        }
+                        else 
+                        {
+                            if (dotCount > 1)
+                            dotCount = 0;
+
+                            if (dotCount > 0)
+                            {
+                                dotCount = 2;
+                            }
+                            else
+                            {
+                            groundDirection = new Vector2(0, 0);
+                            holdDot = 0;
+                            }
+                        }
+                    }
+
+                    if ((velocity < vDiv / 50) && (lastVelocity < vDiv / 50))  // rare failsafe for pen replacement
+                    dotCount = 0;
 
                 if (groundCount > 2)
                     {
@@ -249,7 +278,11 @@ namespace AdaptiveBezierInterpolator
                 controlPointNext = new Vector3(emaTarget, report.Pressure);
 
                 previousTarget = target;
-                target = Vector3.Lerp(controlPoint, controlPointNext, 0.5f + (float)Smootherstep(velocity, vDiv, 0) / 2);
+
+                if (dToggle)
+                dotAntiLatency = (holdDot * (dotCount / 2));
+
+                target = Vector3.Lerp(controlPoint, controlPointNext, Math.Min(0.5f + ((float)Smootherstep(velocity, vDiv, 0) / 2) + dotAntiLatency, 1));
 
                 if (xToggle)
                 UpdateState();
@@ -286,7 +319,7 @@ namespace AdaptiveBezierInterpolator
                 {
                 var lerp1 = Vector3.Lerp(Vector3.Lerp(previousTarget, controlPoint, lastGround), controlPoint, alpha);
                 var lerp2 = Vector3.Lerp(controlPoint, target, alpha);
-                res = Vector3.Lerp(lerp1, lerp2, (float)Math.Pow(alpha, 1 - (float)Smootherstep(velocity, vDiv, 0) / 2));
+                res = Vector3.Lerp(lerp1, lerp2, (float)Math.Pow(alpha, 1 - Math.Min(((float)Smootherstep(velocity, vDiv, 0) / 2) + dotAntiLatency, 1)));
                 }
                 report.Position = new Vector2(res.X, res.Y);
                 report.Pressure = report.Pressure == 0 ? 0 : (uint)(res.Z);
@@ -295,9 +328,9 @@ namespace AdaptiveBezierInterpolator
             }
         }
 
-        private Vector2 emaTarget, tiltTraget, previousTiltTraget, lastEmaTarget, lastLastEmaTarget, groundedPoint;
+        private Vector2 emaTarget, tiltTraget, previousTiltTraget, lastEmaTarget, lastLastEmaTarget, groundedPoint, groundDirection;
         private Vector3 controlPointNext, controlPoint, lastControlPoint, target, previousTarget, groundedTarget;
-        float velocity, accel, lastVelocity, groundedIndex, groundedClock, lastGround, holdEma, groundCount, holdGround;
+        float velocity, accel, lastVelocity, groundedIndex, groundedClock, lastGround, holdEma, groundCount, holdGround, holdDot, dotCount, dotVel, dotAntiLatency;
         private HPETDeltaStopwatch reportStopwatch = new HPETDeltaStopwatch();
         private float reportMsAvg = 5;
 
