@@ -149,42 +149,16 @@ namespace AdaptiveBezierInterpolator
         }
         private float gEma;
 
-        protected override void UpdateState()
+        [BooleanProperty("Wire Update To Consume", ""), DefaultPropertyValue(true), ToolTip
+        (
+            "Does the same thing as TemporalResampler's 'extraFrames' option. This should be fine."
+        )]
+        public bool ExtraFrames
         {
-            float alpha = (float)(reportStopwatch.Elapsed.TotalSeconds * Frequency / reportMsAvg);
-
-            if (State is ITiltReport tiltReport)
-            {
-                tiltReport.Tilt = Vector2.Lerp(previousTiltTraget, tiltTraget, alpha);
-                State = tiltReport;
-            }
-
-            if (State is ITabletReport report && PenIsInRange())
-            {
-                var res = new Vector3(0, 0, 0);
-                alpha = (float)Math.Clamp(alpha, 0, 1);
-                if (rgToggle && groundedIndex > 0.5)
-                {
-                    if (groundedClock > 0.5)
-                        res = Vector3.Lerp(controlPoint, Vector3.Lerp(target, controlPointNext, aa0 + alpha * aa1), aa0 + alpha * aa1);
-                        else
-                         {
-                            res = Vector3.Lerp(Vector3.Lerp(previousTarget, controlPoint, aa2 + alpha * aa3), target, aa2 + alpha * aa3);
-                            res = Vector3.Lerp(res, controlPointNext, (float)Smootherstep(velocity / vDiv, 0.1, 0));
-                         }
-                }
-                else
-                {
-                var lerp1 = Vector3.Lerp(Vector3.Lerp(previousTarget, controlPoint, lastGround), controlPoint, alpha);
-                var lerp2 = Vector3.Lerp(controlPoint, target, alpha);
-                res = Vector3.Lerp(lerp1, lerp2, (float)Math.Pow(alpha, 1 - (float)Smootherstep(velocity, vDiv, 0) / 2));
-                }
-                report.Position = new Vector2(res.X, res.Y);
-                report.Pressure = report.Pressure == 0 ? 0 : (uint)(res.Z);
-                State = report;
-                OnEmit();
-            }
+            get { return xToggle; }
+            set { xToggle = value; }
         }
+        public bool cLog;
 
         protected override void ConsumeState()
         {
@@ -259,9 +233,48 @@ namespace AdaptiveBezierInterpolator
                 previousTarget = target;
                 target = Vector3.Lerp(controlPoint, controlPointNext, 0.5f + (float)Smootherstep(velocity, vDiv, 0) / 2);
                 
+                if (xToggle)
+                UpdateState();
                 
             }
             else OnEmit();
+        }
+
+        protected override void UpdateState()
+        {
+            float alpha = (float)(reportStopwatch.Elapsed.TotalSeconds * Frequency / reportMsAvg);
+
+            if (State is ITiltReport tiltReport)
+            {
+                tiltReport.Tilt = Vector2.Lerp(previousTiltTraget, tiltTraget, alpha);
+                State = tiltReport;
+            }
+
+            if (State is ITabletReport report && PenIsInRange())
+            {
+                var res = new Vector3(0, 0, 0);
+                alpha = (float)Math.Clamp(alpha, 0, 1);
+                if (rgToggle && groundedIndex > 0.5)
+                {
+                    if (groundedClock > 0.5)
+                        res = Vector3.Lerp(controlPoint, Vector3.Lerp(target, controlPointNext, aa0 + alpha * aa1), aa0 + alpha * aa1);
+                        else
+                         {
+                            res = Vector3.Lerp(Vector3.Lerp(previousTarget, controlPoint, aa2 + alpha * aa3), target, aa2 + alpha * aa3);
+                            res = Vector3.Lerp(res, controlPointNext, (float)Smootherstep(velocity / vDiv, 0.1, 0));
+                         }
+                }
+                else
+                {
+                var lerp1 = Vector3.Lerp(Vector3.Lerp(previousTarget, controlPoint, lastGround), controlPoint, alpha);
+                var lerp2 = Vector3.Lerp(controlPoint, target, alpha);
+                res = Vector3.Lerp(lerp1, lerp2, (float)Math.Pow(alpha, 1 - (float)Smootherstep(velocity, vDiv, 0) / 2));
+                }
+                report.Position = new Vector2(res.X, res.Y);
+                report.Pressure = report.Pressure == 0 ? 0 : (uint)(res.Z);
+                State = report;
+                OnEmit();
+            }
         }
 
         private Vector2 emaTarget, tiltTraget, previousTiltTraget, lastEmaTarget, lastLastEmaTarget, groundedPoint;
