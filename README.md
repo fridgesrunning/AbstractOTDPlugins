@@ -1,5 +1,5 @@
 # AbstractOTDPlugins [![Total Download Count](https://img.shields.io/github/downloads/fridgesrunning/AbstractOTDPlugins/total.svg)](https://github.com/fridgesrunning/AbstractOTDPlugins/releases)
-Plugins originally made by AbstractQBit for [OpenTabletDriver](https://github.com/OpenTabletDriver/OpenTabletDriver), modified for niche use cases.
+Plugins originally made by AbstractQBit for [OpenTabletDriver](https://github.com/OpenTabletDriver/OpenTabletDriver), modified for niche use cases. Check for release updates on OTD every now and then.
 
 ## [Adaptive Radial Follow Smoothing](AdaptiveRadialFollow/)
 Are you lost? Click above. Also check the calculator below.
