@@ -164,9 +164,16 @@ namespace AdaptiveRadialFollow
 
         public Vector2 Filter(IDeviceReport value, Vector2 target)
         {
+                // Timing system from BezierInterpolator to standardize velocity
+            double holdTime = stopwatch.Restart().TotalMilliseconds;
+                var consumeDelta = holdTime;
+                if (consumeDelta < 150)
+                    reportMsAvg += ((consumeDelta - reportMsAvg) * 0.1f);
+
                 // Produce numbers (velocity, accel, etc)
-                holdTime = stopwatch.Restart().TotalMilliseconds;
             UpdateReports(value, target);
+
+            Console.WriteLine(reportMsAvg);
 
                 // Self explanatory
             if (aToggle == true)
@@ -257,11 +264,11 @@ namespace AdaptiveRadialFollow
                 thirddiff = lastLastReport - last3Report;
 
                 lastVel = vel;
-                vel =  ((Math.Sqrt(Math.Pow(diff.X / xDiv, 2) + Math.Pow(diff.Y, 2)) / 12.5) / holdTime);
+                vel =  ((Math.Sqrt(Math.Pow(diff.X / xDiv, 2) + Math.Pow(diff.Y, 2)) / 12.5) / reportMsAvg);
                 holdVel = vel;
 
                 lastAccel = accel;
-                accel = vel - ((Math.Sqrt(Math.Pow(seconddiff.X / xDiv, 2) + Math.Pow(seconddiff.Y, 2)) / 12.5) / holdTime);
+                accel = vel - ((Math.Sqrt(Math.Pow(seconddiff.X / xDiv, 2) + Math.Pow(seconddiff.Y, 2)) / 12.5) / reportMsAvg);
 
                     // Has less use than it probably should.
                 lastJerk = jerk;
@@ -272,7 +279,7 @@ namespace AdaptiveRadialFollow
                     // Angle index doesn't even use angles directly.
                 angleIndexPoint = 2 * diff - seconddiff - thirddiff;
                 lastIndexFactor = indexFactor;
-                indexFactor = (Math.Sqrt(Math.Pow(angleIndexPoint.X / xDiv, 2) + Math.Pow(angleIndexPoint.Y, 2)) / 12.5) / holdTime;
+                indexFactor = (Math.Sqrt(Math.Pow(angleIndexPoint.X / xDiv, 2) + Math.Pow(angleIndexPoint.Y, 2)) / 12.5) / reportMsAvg;
 
                 accelMult = Smoothstep(accel, -1 / (6 / amvDiv), 0) + Smoothstep(accel, 0, 1 / (6 / amvDiv));   // Usually 1, reaches 0 and 2 under sufficient deceleration and acceleration respecctively
                 
@@ -416,8 +423,8 @@ namespace AdaptiveRadialFollow
 
         void AdvancedReset()
         {
-            vel =  ((Math.Sqrt(Math.Pow(diff.X / xDiv, 2) + Math.Pow(diff.Y, 2)) / 12.5) / holdTime);
-            accel = vel - ((Math.Sqrt(Math.Pow(seconddiff.X / xDiv, 2) + Math.Pow(seconddiff.Y, 2)) / 12.5) / holdTime);   // This serves no use but might later on.
+            vel =  ((Math.Sqrt(Math.Pow(diff.X / xDiv, 2) + Math.Pow(diff.Y, 2)) / 12.5) / reportMsAvg);
+            accel = vel - ((Math.Sqrt(Math.Pow(seconddiff.X / xDiv, 2) + Math.Pow(seconddiff.Y, 2)) / 12.5) / reportMsAvg);   // This serves no use but might later on.
         }
         
         /// Math functions
@@ -641,6 +648,6 @@ namespace AdaptiveRadialFollow
 
         public double sinceAccelTop;
 
-        public double holdTime;
+        private double reportMsAvg = 5;
     }
 }
