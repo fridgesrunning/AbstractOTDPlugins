@@ -173,7 +173,6 @@ namespace AdaptiveRadialFollow
                 // Produce numbers (velocity, accel, etc)
             UpdateReports(value, target);
 
-            Console.WriteLine(reportMsAvg);
 
                 // Self explanatory
             if (aToggle == true)
