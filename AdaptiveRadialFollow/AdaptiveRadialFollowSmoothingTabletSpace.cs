@@ -272,6 +272,148 @@ namespace AdaptiveRadialFollow
             set { radialCore.groundedBehavior = value; }
         }
 
+        
+        [Property("extra number 1"), DefaultPropertyValue(1.0d), ToolTip
+        (
+            "Read the source code."
+        )]
+        public double extrastuff1
+        {
+            get => radialCore.extrastuff1;
+            set { radialCore.extrastuff1 = value; }
+        }
+
+        [Property("extra number 2"), DefaultPropertyValue(1.0d), ToolTip
+        (
+            "Read the source code."
+        )]
+        public double extrastuff2
+        {
+            get => radialCore.extrastuff2;
+            set { radialCore.extrastuff2 = value; }
+        }
+
+        [Property("extra number 3"), DefaultPropertyValue(1.0d), ToolTip
+        (
+            "Read the source code."
+        )]
+        public double extrastuff3
+        {
+            get => radialCore.extrastuff3;
+            set { radialCore.extrastuff3 = value; }
+        }
+
+        [Property("extra number 3"), DefaultPropertyValue(1.0d), ToolTip
+        (
+            "Read the source code."
+        )]
+        public double extrastuff3
+        {
+            get => radialCore.extrastuff3;
+            set { radialCore.extrastuff3 = value; }
+        }
+        
+        [Property("extra number 3"), DefaultPropertyValue(1.0d), ToolTip
+        (
+            "Read the source code."
+        )]
+        public double extrastuff3
+        {
+            get => radialCore.extrastuff3;
+            set { radialCore.extrastuff3 = value; }
+        }
+        
+        [Property("extra number 3"), DefaultPropertyValue(1.0d), ToolTip
+        (
+            "Read the source code."
+        )]
+        public double extrastuff3
+        {
+            get => radialCore.extrastuff3;
+            set { radialCore.extrastuff3 = value; }
+        }
+        
+        [Property("extra number 3"), DefaultPropertyValue(1.0d), ToolTip
+        (
+            "Read the source code."
+        )]
+        public double extrastuff3
+        {
+            get => radialCore.extrastuff3;
+            set { radialCore.extrastuff3 = value; }
+        }
+        
+        [Property("extra number 3"), DefaultPropertyValue(1.0d), ToolTip
+        (
+            "Read the source code."
+        )]
+        public double extrastuff3
+        {
+            get => radialCore.extrastuff3;
+            set { radialCore.extrastuff3 = value; }
+        }
+        
+        [Property("extra number 3"), DefaultPropertyValue(1.0d), ToolTip
+        (
+            "Read the source code."
+        )]
+        public double extrastuff3
+        {
+            get => radialCore.extrastuff3;
+            set { radialCore.extrastuff3 = value; }
+        }
+        
+        [Property("extra number 3"), DefaultPropertyValue(1.0d), ToolTip
+        (
+            "Read the source code."
+        )]
+        public double extrastuff3
+        {
+            get => radialCore.extrastuff3;
+            set { radialCore.extrastuff3 = value; }
+        }
+        
+        [Property("extra number 3"), DefaultPropertyValue(1.0d), ToolTip
+        (
+            "Read the source code."
+        )]
+        public double extrastuff3
+        {
+            get => radialCore.extrastuff3;
+            set { radialCore.extrastuff3 = value; }
+        }
+        
+        [Property("extra number 3"), DefaultPropertyValue(1.0d), ToolTip
+        (
+            "Read the source code."
+        )]
+        public double extrastuff3
+        {
+            get => radialCore.extrastuff3;
+            set { radialCore.extrastuff3 = value; }
+        }
+        
+        [Property("extra number 3"), DefaultPropertyValue(1.0d), ToolTip
+        (
+            "Read the source code."
+        )]
+        public double extrastuffc
+        {
+            get => radialCore.extrastuffc;
+            set { radialCore.extrastuff3 = value; }
+        }
+        
+        [Property("extra number d"), DefaultPropertyValue(1.0d), ToolTip
+        (
+            "Read the source code."
+        )]
+        public double extrastuffd
+        {
+            get => radialCore.extrastuffd;
+            set { radialCore.extrastuffd = value; }
+        }
+        
+        
         public event Action<IDeviceReport> Emit;
 
         public void Consume(IDeviceReport value)

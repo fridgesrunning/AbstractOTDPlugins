@@ -158,6 +158,92 @@ namespace AdaptiveRadialFollow
         }
         public bool rToggle;
 
+        public double extrastuff1
+        {
+            get { return xn1; }
+            set { xn1 = value; }
+        }
+        public double xn1;
+
+        public double extrastuff2
+        {
+            get { return xn2; }
+            set { xn2 = value; }
+        }
+        public double xn2;
+
+        public double extrastuff4
+        {
+            get { return xn4; }
+            set { xn4 = value; }
+        }
+        public double xn4;
+
+        public double extrastuff5
+        {
+            get { return xn5; }
+            set { xn5 = value; }
+        }
+        public double xn5;
+
+        public double extrastuff6
+        {
+            get { return xn6; }
+            set { xn6 = value; }
+        }
+        public double xn6;
+
+        public double extrastuff7
+        {
+            get { return xn7; }
+            set { xn7 = value; }
+        }
+        public double xn7;
+
+        public double extrastuff8
+        {
+            get { return xn8; }
+            set { xn8 = value; }
+        }
+        public double xn8;
+
+        public double extrastuff9
+        {
+            get { return xn9; }
+            set { xn9 = value; }
+        }
+        public double xn9;
+
+        public double extrastuffa
+        {
+            get { return xna; }
+            set { xna = value; }
+        }
+        public double xna;
+
+        public double extrastuffb
+        {
+            get { return xnb; }
+            set { xnb = value; }
+        }
+        public double xnc;
+
+        public double extrastuffc
+        {
+            get { return xnc; }
+            set { xnc = value; }
+        }
+        public double xnb;
+
+        public double extrastuffd
+        {
+            get { return xnd; }
+            set { xnd = value; }
+        }
+        public double xnd;
+
+
+
         public float SampleRadialCurve(IDeviceReport value, float dist) => (float)deltaFn(value, dist, xOffset(value), scaleComp(value));
         public double ResetMs = 1;
         public double GridScale = 1;
@@ -188,13 +274,9 @@ namespace AdaptiveRadialFollow
             Vector2 direction = target - cursor;
             float distToMove = SampleRadialCurve(value, direction.Length());    // Where all the magic happens
 
-                // rawThreshold should be negative (or not.) Sets lerpScale to a smootherstep from accel = rawThreshold to accel = something lower
-            if (accel / (6 / vDiv) < rawThreshold)
-            lerpScale = Smootherstep(accel / (6 / vDiv), rawThreshold, rawThreshold - (1 / (6 / vDiv)));
+            LerpChecks();
 
-            if ((aToggle == true) && (indexFactor - lastIndexFactor > (holdVel * explerpconf)))
-            lerpScale = Math.Max(lerpScale, Smootherstep(indexFactor - lastIndexFactor, (holdVel * explerpconf), (holdVel * explerpconf) + (1 / (6 / rawv))));  // Don't exactly remember why this is the way it is but it looks like it works
-            
+                        
             direction = Vector2.Normalize(direction);
             cursor = cursor + Vector2.Multiply(direction, distToMove);
             cursor = LerpedCursor((float)lerpScale, cursor, target);    // Jump to raw report if certain conditions are fulfilled
@@ -263,11 +345,11 @@ namespace AdaptiveRadialFollow
                 thirddiff = lastLastReport - last3Report;
 
                 lastVel = vel;
-                vel =  ((Math.Sqrt(Math.Pow(diff.X / xDiv, 2) + Math.Pow(diff.Y, 2)) / 12.5) / reportMsAvg);
+                vel =  ((Math.Sqrt(Math.Pow(diff.X / xDiv, 2) + Math.Pow(diff.Y, 2)) / 12.5) / 7.5);
                 holdVel = vel;
 
                 lastAccel = accel;
-                accel = vel - ((Math.Sqrt(Math.Pow(seconddiff.X / xDiv, 2) + Math.Pow(seconddiff.Y, 2)) / 12.5) / reportMsAvg);
+                accel = vel - ((Math.Sqrt(Math.Pow(seconddiff.X / xDiv, 2) + Math.Pow(seconddiff.Y, 2)) / 12.5) / 7.5);
 
                     // Has less use than it probably should.
                 lastJerk = jerk;
@@ -278,7 +360,7 @@ namespace AdaptiveRadialFollow
                     // Angle index doesn't even use angles directly.
                 angleIndexPoint = 2 * diff - seconddiff - thirddiff;
                 lastIndexFactor = indexFactor;
-                indexFactor = (Math.Sqrt(Math.Pow(angleIndexPoint.X / xDiv, 2) + Math.Pow(angleIndexPoint.Y, 2)) / 12.5) / reportMsAvg;
+                indexFactor = (Math.Sqrt(Math.Pow(angleIndexPoint.X / xDiv, 2) + Math.Pow(angleIndexPoint.Y, 2)) / 12.5) / 7.5;
 
                 accelMult = Smoothstep(accel, -1 / (6 / amvDiv), 0) + Smoothstep(accel, 0, 1 / (6 / amvDiv));   // Usually 1, reaches 0 and 2 under sufficient deceleration and acceleration respecctively
                 
@@ -301,7 +383,7 @@ namespace AdaptiveRadialFollow
 
             sinceSnap += 1;
             doubt = 0;
-            if ((Math.Abs(indexFactor) > vel * 2 | (accel / vel > 0.35)) && (vel / rawv > 0.25))
+            if ((Math.Abs(indexFactor) > vel * 2 | (accel / vel > xnc)) && (vel / rawv > xnd))
             {
             //    Console.WriteLine("snapping?");
             //    Console.WriteLine(accel / vel);
@@ -347,8 +429,8 @@ namespace AdaptiveRadialFollow
         //    }
 
             if ( // (vel > rawv & lastVel > rawv) || 
-                (accel > (1 / (6 / rawv)) & jerk > (1 / (6 / rawv)) & snap > (1 / (6 / rawv))) ||
-                (indexFactor > Math.Max(1 / (6 / rawv), angidx * vel)))
+                (accel > (xn3 / (6 / rawv)) & jerk > (xn4 / (6 / rawv)) & snap > (xn5 / (6 / rawv))) ||
+                (indexFactor > Math.Max(xn6 / (6 / rawv), angidx * vel)))
             {
                 vel *= 10 * vDiv;
                 accelMult = 2;
@@ -396,8 +478,8 @@ namespace AdaptiveRadialFollow
                 if ((radiusGroundCount <= 1) || 
                 
                 (vel > rawv & lastVel > rawv) && 
-                ((accel > (1 / (6 / rawv)) & jerk > (1 / (6 / rawv)) & snap > (1 / (6 / rawv))) ||
-                (indexFactor > Math.Max(1 / (6 / rawv), angidx * vel)) ||
+                ((accel > (xn3 / (6 / rawv)) & jerk > (xn4 / (6 / rawv)) & snap > (xn5 / (6 / rawv))) ||
+                (indexFactor > Math.Max(xn6 / (6 / rawv), angidx * vel)) ||
                 (sinceAccelTop > 0)))
                 {
                     groundedPoint = cursor;
@@ -411,7 +493,7 @@ namespace AdaptiveRadialFollow
                   //  Console.WriteLine(holdVel2 * Math.Pow(accelMult, accPower));
 
 
-                // Cursor is outside max outer radius while radius is usually maxed? Act as if radius doesn't exist for smooth movement
+                // Cursor is outside max outer radius while radius is usually maxed? Act as if radius doesn't exist for smooth movement. Also exopts bs
             if (distanceGround > rOuter)
             {
                 vel = 0;
@@ -420,10 +502,28 @@ namespace AdaptiveRadialFollow
 
         }
 
+        void LerpChecks()
+        {
+                // rawThreshold should be negative (or not.) Sets lerpScale to a smootherstep from accel = rawThreshold to accel = something lower
+            if (accel / (6 / vDiv) < rawThreshold)
+            lerpScale = Smootherstep(accel / (6 / vDiv), rawThreshold, rawThreshold - (xn1 / (6 / vDiv)));
+
+            if ((aToggle == true) && (indexFactor - lastIndexFactor > (holdVel * explerpconf)))
+            lerpScale = Math.Max(lerpScale, Smootherstep(indexFactor - lastIndexFactor, (holdVel * explerpconf), (holdVel * explerpconf) + (xn2 / (6 / rawv))));  // Don't exactly remember why this is the way it is but it looks like it works
+
+            if (jerk < xn7)
+            lerpScale = Math.Max(lerpScale, Smootherstep(jerk, xn7, xn7 - xn8));
+
+            if (snap < xn9)
+            lerpScale = Math.Max(lerpScale, Smootherstep(snap, xn9, xn9 - xna));
+
+
+        }
+
         void AdvancedReset()
         {
-            vel =  ((Math.Sqrt(Math.Pow(diff.X / xDiv, 2) + Math.Pow(diff.Y, 2)) / 12.5) / reportMsAvg);
-            accel = vel - ((Math.Sqrt(Math.Pow(seconddiff.X / xDiv, 2) + Math.Pow(seconddiff.Y, 2)) / 12.5) / reportMsAvg);   // This serves no use but might later on.
+            vel =  ((Math.Sqrt(Math.Pow(diff.X / xDiv, 2) + Math.Pow(diff.Y, 2)) / 12.5) / 7.5);
+            accel = vel - ((Math.Sqrt(Math.Pow(seconddiff.X / xDiv, 2) + Math.Pow(seconddiff.Y, 2)) / 12.5) / 7.5);   // This serves no use but might later on.
         }
         
         /// Math functions
