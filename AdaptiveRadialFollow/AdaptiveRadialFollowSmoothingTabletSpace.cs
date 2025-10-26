@@ -272,6 +272,26 @@ namespace AdaptiveRadialFollow
             set { radialCore.groundedBehavior = value; }
         }
 
+        [BooleanProperty("Changed Flow Behavior", ""), DefaultPropertyValue(true), ToolTip
+        (
+            "Divides acceleration by some logarithmic function of velocity to drastically reduce the chance of snaps on flow or spin."
+        )]
+        public bool extratoggle1
+        {
+            get => radialCore.extratoggle1;
+            set { radialCore.extratoggle1 = value; }
+        }
+
+        [Property("Number For Above Setting"), DefaultPropertyValue(2d), ToolTip
+        (
+            "Raw velocity is used for the above setting. This compensates for area. Set it to like 1 if you got a normal area, I have a large area so default is 2"
+        )]
+        public double extrastuffg
+        {
+            get => radialCore.extrastuffg;
+            set { radialCore.extrastuffg = value; }
+        }
+
         public event Action<IDeviceReport> Emit;
 
         public void Consume(IDeviceReport value)
