@@ -297,7 +297,7 @@ namespace AdaptiveRadialFollow
 
 
                 if (xt1)
-                accelMult = Smoothstep(accel, -1 / (6 / amvDiv), 0) + Smoothstep(accel / Math.Log(Math.Pow(lastVel / xng + 1, xng) + 1), 0, 1 / (6 / amvDiv));
+                accelMult = Smoothstep(accel, -1 / (6 / amvDiv), 0) + Smoothstep(accel / Math.Log((Math.Pow(lastVel / xng + 1, xng)) + 1), 0, 1 / (6 / amvDiv));
                 else accelMult = Smoothstep(accel, -1 / (6 / amvDiv), 0) + Smoothstep(accel, 0, 1 / (6 / amvDiv));   // Usually 1, reaches 0 and 2 under sufficient deceleration and acceleration respecctively
                 
             /// You can uncomment for advanced diagnostics.
