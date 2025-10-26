@@ -249,6 +249,20 @@ namespace AdaptiveRadialFollow
         }
         public double xnd;
 
+        public bool extratoggle1
+        {
+            get { return xt1; }
+            set { xt1 = value; }
+        }
+        public bool xt1;
+
+        public double extrastuffg
+        {   
+            get { return xng; }
+            set { xng = value; }
+        }
+        public double xng;
+
         public float SampleRadialCurve(IDeviceReport value, float dist) => (float)deltaFn(value, dist, xOffset(value), scaleComp(value));
         public double ResetMs = 1;
         public double GridScale = 1;
@@ -367,6 +381,9 @@ namespace AdaptiveRadialFollow
                 lastIndexFactor = indexFactor;
                 indexFactor = (Math.Sqrt(Math.Pow(angleIndexPoint.X / xDiv, 2) + Math.Pow(angleIndexPoint.Y, 2)) / 12.5) / xnb;
 
+                if (xt1)
+                accelMult = Smoothstep(accel, -1 / (6 / amvDiv), 0) + Smoothstep(accel / Math.Log(Math.Pow((float)lastVel / xng + 1, xng) + 1), 0, 1 / (6 / amvDiv));
+                else
                 accelMult = Smoothstep(accel, -1 / (6 / amvDiv), 0) + Smoothstep(accel, 0, 1 / (6 / amvDiv));   // Usually 1, reaches 0 and 2 under sufficient deceleration and acceleration respecctively
                 
             /// You can uncomment for advanced diagnostics.

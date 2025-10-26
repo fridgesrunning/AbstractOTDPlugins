@@ -402,6 +402,26 @@ namespace AdaptiveRadialFollow
             get => radialCore.extrastuffd;
             set { radialCore.extrastuffd = value; }
         }
+
+        [BooleanProperty("Extra Toggle 1", ""), DefaultPropertyValue(true), ToolTip
+        (
+            "String"
+        )]
+        public bool extratoggle1
+        {
+            get => radialCore.extratoggle1;
+            set { radialCore.extratoggle1 = value; }
+        }
+
+        [Property("extra number g"), DefaultPropertyValue(1.0d), ToolTip
+        (
+            "Read the source code."
+        )]
+        public double extrastuffg
+        {
+            get => radialCore.extrastuffg;
+            set { radialCore.extrastuffg = value; }
+        }
         
         
         public event Action<IDeviceReport> Emit;
