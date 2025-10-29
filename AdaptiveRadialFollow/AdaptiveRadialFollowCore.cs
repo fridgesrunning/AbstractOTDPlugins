@@ -237,6 +237,7 @@ namespace AdaptiveRadialFollow
                 Console.WriteLine("Sharp Decel Lerp (With sharp decel, cursor is lerped between calculated value and raw report using this scale):");
                 Console.WriteLine(lerpScale);
 
+
                 if (aToggle == true)
                 {
                     Console.WriteLine("A bunch of random numbers...");
@@ -246,6 +247,7 @@ namespace AdaptiveRadialFollow
                     Console.WriteLine((indexFactor - lastIndexFactor) / holdVel);
                     Console.WriteLine(spinCheck);
                     Console.WriteLine(sinceSnap);
+                    Console.WriteLine(Math.Log((Math.Pow(lastVel / xng + 1, xng)) + 1));
                 }
     
                 Console.WriteLine("End of report ----------------------------------------------------");
@@ -297,8 +299,8 @@ namespace AdaptiveRadialFollow
 
 
                 if (xt1)
-                accelMult = Smoothstep(accel, -1 / (6 / amvDiv), 0) + Smoothstep(accel / Math.Log((Math.Pow(lastVel / xng + 1, xng)) + 1), 0, 1 / (6 / amvDiv));
-                else accelMult = Smoothstep(accel, -1 / (6 / amvDiv), 0) + Smoothstep(accel, 0, 1 / (6 / amvDiv));   // Usually 1, reaches 0 and 2 under sufficient deceleration and acceleration respecctively
+                accelMult = Smootherstep(accel, -1 / (6 / amvDiv), 0) + Smootherstep(accel / Math.Log((Math.Pow(lastVel / xng + 1, xng)) + 1), 0, 1 / (6 / amvDiv));
+                else accelMult = Smootherstep(accel, -1 / (6 / amvDiv), 0) + Smootherstep(accel, 0, 1 / (6 / amvDiv));   // Usually 1, reaches 0 and 2 under sufficient deceleration and acceleration respecctively
                 
             /// You can uncomment for advanced diagnostics.
             //    Console.WriteLine(vel);
