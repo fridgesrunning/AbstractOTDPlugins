@@ -251,7 +251,7 @@ namespace AdaptiveRadialFollow
                     kindahomeless = 15;
 
                 } 
-                Console.WriteLine(kindahomeless);
+             //   Console.WriteLine(kindahomeless);
 
             }
 
