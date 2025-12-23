@@ -292,6 +292,16 @@ namespace AdaptiveRadialFollow
             set { radialCore.extrastuffg = value; }
         }
 
+        [BooleanProperty("Don't Enable This Unless You Know What You're Doing", ""), DefaultPropertyValue(false), ToolTip
+        (
+            "Extremely hacky velocity stabilization. Initial settings are messed up, can be configured with Wacom Pro 2025 tablet buttons/wheel in daemon."
+        )]
+        public bool extratoggle2
+        {
+            get => radialCore.extratoggle2;
+            set { radialCore.extratoggle2 = value; }
+        }
+
         public event Action<IDeviceReport> Emit;
 
         public void Consume(IDeviceReport value)
@@ -300,6 +310,9 @@ namespace AdaptiveRadialFollow
             {
                 report.Position = radialCore.Filter(value, report.Position * mmScale) / mmScale;
                 value = report;
+            }
+            else if (value is IAuxReport auxReport) {
+                radialCore.AuxInput(auxReport);
             }
             Emit?.Invoke(value);
         }
