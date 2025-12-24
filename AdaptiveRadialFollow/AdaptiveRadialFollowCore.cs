@@ -238,9 +238,22 @@ namespace AdaptiveRadialFollow
                 index = 1;
 
 
-                if (pleasespeedineedthis < 0.1)
-                dirToMove = VelocityFilter(dirToMove);
-            } 
+                if ((pleasespeedineedthis < 0.1)) {
+                    if (kindahomeless < 0)
+                        dirToMove = VelocityFilter(dirToMove);
+                    else {   
+                        kindahomeless--;
+                        outputVel0 = Vector2.Zero;
+                    }
+                }
+                else {
+                    outputVel0 = Vector2.Zero;
+                    kindahomeless = 15;
+
+                } 
+                Console.WriteLine(kindahomeless);
+
+            }
 
             cursor = cursor + dirToMove;
             cursor = LerpedCursor((float)lerpScale, cursor, target);    // Jump to raw report if certain conditions are fulfilled
@@ -870,6 +883,8 @@ namespace AdaptiveRadialFollow
         public double vel0, vel1, accel0;
 
         public double pleasespeedineedthis;
+
+        public int kindahomeless;
 
         private bool vec2IsFinite(Vector2 vec) => float.IsFinite(vec.X) & float.IsFinite(vec.Y);
     }
