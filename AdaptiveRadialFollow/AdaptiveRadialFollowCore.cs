@@ -284,9 +284,9 @@ namespace AdaptiveRadialFollow
                     velPeakDir = dir1;
                 }
 
-                if (accel0 > 0 && accel1 < 0) {
+                if (accel0 > 0 && accel1 < 0 && pointAccel1.Length() + pointAccel0.Length() > 5) {
                     dirFactor = 1.25 * Smootherstep(dir0.Length() / velPeakDir.Length(), 0.3, 0.1);
-                    if (pointAccel0.Length() > 3) {
+                    if (pointAccel0.Length() > 5) {
                         dirFactor *= Math.Max(0, Math.Pow(Vector2.Dot(Vector2.Normalize(pointAccel0), Vector2.Normalize(Vector2.Zero - velPeakDir)), 1));
                     }
                 }
