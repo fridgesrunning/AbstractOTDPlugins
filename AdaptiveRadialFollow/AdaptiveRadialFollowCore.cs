@@ -138,7 +138,6 @@ namespace AdaptiveRadialFollow
             get { return amvDiv; }
             set { amvDiv = vDiv;
 
-                // amvDiv = vDiv unless specified to an override
             if (aToggle == true)
             amvDiv = System.Math.Clamp(value, 0.1f, 1000000.0f);  }
         }
@@ -179,317 +178,256 @@ namespace AdaptiveRadialFollow
 
         public Vector2 Filter(IDeviceReport value, Vector2 target)
         {
-                // Timing system from BezierInterpolator to standardize velocity
             double holdTime = stopwatch.Restart().TotalMilliseconds;
                 var consumeDelta = holdTime;
-                if (consumeDelta < 150)
+                if (consumeDelta < 150) {
                     reportMsAvg += ((consumeDelta - reportMsAvg) * 0.1f);
+                }
 
-                // Produce numbers (velocity, accel, etc)
             UpdateReports(value, target);
 
-
-                // Self explanatory
-            if (aToggle == true)
-            {
+            if (aToggle == true) {
                 AdvancedBehavior();
-                if (rToggle == true)
-                {
-                    GroundedRadius(value, target); // Grounded radius behavior
+                if (rToggle == true) {
+                    GroundedRadius(value, target); 
                 }
             }
-            holdCursor = cursor;    // Don't remember why this is a thing
+            holdCursor = cursor;
 
             Vector2 direction = target - cursor;
-            float distToMove = SampleRadialCurve(value, direction.Length());    // Where all the magic happens
+            float distToMove = SampleRadialCurve(value, direction.Length());
 
-                // rawThreshold should be negative (or not.) Sets lerpScale to a smootherstep from accel = rawThreshold to accel = something lower
-            if (accel / (6 / vDiv) < rawThreshold)
-            lerpScale = Smootherstep(accel / (6 / vDiv), rawThreshold, rawThreshold - (1 / (6 / vDiv)));
+            if (accel0 / (6 / vDiv) < rawThreshold)
+            lerpScale = Smootherstep(accel0 / (6 / vDiv), rawThreshold, rawThreshold - (1 / (6 / vDiv)));
 
-            if ((aToggle == true) && (indexFactor - lastIndexFactor > (holdVel * explerpconf)))
-            lerpScale = Math.Max(lerpScale, Smootherstep(indexFactor - lastIndexFactor, (holdVel * explerpconf), (holdVel * explerpconf) + (1 / (6 / rawv))));  // Don't exactly remember why this is the way it is but it looks like it works
+            if ((aToggle == true) && (indexFactor0 - indexFactor1 > (hold1Vel0 * explerpconf)))
+            lerpScale = Math.Max(lerpScale, Smootherstep(indexFactor0 - indexFactor1, (hold1Vel0 * explerpconf), (hold1Vel0 * explerpconf) + (1 / (6 / rawv))));
             
             direction = Vector2.Normalize(direction);
             cursor = cursor + Vector2.Multiply(direction, distToMove);
-            cursor = LerpedCursor((float)lerpScale, cursor, target);    // Jump to raw report if certain conditions are fulfilled
+            cursor = Vector2.Lerp(cursor, target, (float)lerpScale);
 
-                // Catch NaNs and pen redetection
             if (!(float.IsFinite(cursor.X) & float.IsFinite(cursor.Y) & holdTime < 50))
                 cursor = target;
 
 
-            if (cLog == true)
-            {
+            if (cLog == true) {
                 Console.WriteLine("Start of report ----------------------------------------------------");
                 Console.WriteLine("Raw Velocity:");
-                Console.WriteLine(holdVel);
+                Console.WriteLine(hold1Vel0);
                 Console.WriteLine("Raw Acceleration:");
-                Console.WriteLine(accel);
-                Console.WriteLine("Accel Mult (this is an additional factor that multiplies velocity, should be close to or 0 on sharp decel, hovering around 1 when neutral, and close to or 2 on sharp accel. Only affected by power on radius scaling, so not shown.):");
+                Console.WriteLine(accel0);
+                Console.WriteLine("Accel Mult (this is an additional factor that multiplies velocity, should be close to or 0 on sharp decel, hovering around 1 when neutral, and close to or 2 on sharp accel0. Only affected by power on radius scaling, so not shown.):");
                 Console.WriteLine(accelMult);
                 Console.WriteLine("Outside Radius:");
                 Console.WriteLine(rOuterAdjusted(value, cursor, rOuter, rInner));
                 Console.WriteLine("Inner Radius:");
                 Console.WriteLine(rInnerAdjusted(value, cursor, rInner));
                 Console.WriteLine("Smoothing Coefficient:");
-                Console.WriteLine(smoothCoef / (1 + (Smoothstep(vel * accelMult, vDiv, 0) * (minSmooth - 1))));
+                Console.WriteLine(smoothCoef / (1 + (Smoothstep(vel0 * accelMult, vDiv, 0) * (minSmooth - 1))));
                 Console.WriteLine("Sharp Decel Lerp (With sharp decel, cursor is lerped between calculated value and raw report using this scale):");
                 Console.WriteLine(lerpScale);
 
-
-                if (aToggle == true)
-                {
+                if (aToggle == true) {
                     Console.WriteLine("A bunch of random numbers...");
-                    Console.WriteLine(jerk);
-                    Console.WriteLine(snap);
-                    Console.WriteLine(indexFactor);
-                    Console.WriteLine((indexFactor - lastIndexFactor) / holdVel);
+                    Console.WriteLine(jerk0);
+                    Console.WriteLine(indexFactor0);
+                    Console.WriteLine((indexFactor0 - indexFactor1) / hold1Vel0);
                     Console.WriteLine(spinCheck);
                     Console.WriteLine(sinceSnap);
-                    Console.WriteLine(Math.Log((Math.Pow(lastVel / xng + 1, xng)) + 1));
+                    Console.WriteLine(Math.Log((Math.Pow(vel1 / xng + 1, xng)) + 1));
                 }
     
                 Console.WriteLine("End of report ----------------------------------------------------");
             }
 
-            lerpScale = 0;  // Reset value
-            lastCursor = holdCursor;    // Don't remember why this is a thing
+            lerpScale = 0;
+            lastCursor = holdCursor;
 
-                // Reset possibly changed values
             if (aToggle == true)
             AdvancedReset();
 
             return cursor;
         }
 
+        void UpdateReports(IDeviceReport value, Vector2 target) {
+            if (value is ITabletReport report) {
 
-            // Stats from reports
-        void UpdateReports(IDeviceReport value, Vector2 target)
-        {
-            if (value is ITabletReport report)
-            {
+                pos3 = pos2;
+                pos2 = pos1;
+                pos1 = pos0;
+                pos0 = report.Position;
 
-                last3Report = lastLastReport;
-                lastLastReport = lastReport;
-                lastReport = currReport;
-                currReport = report.Position;
+                dir2 = dir1;
+                dir1 = dir0;
+                dir0 = pos0 - pos1;
 
-                diff = currReport - lastReport;
-                seconddiff = lastReport - lastLastReport;
-                thirddiff = lastLastReport - last3Report;
+                pointAccel2 = pointAccel1;
+                pointAccel1 = pointAccel0;
+                pointAccel0 = dir0 - dir1;
 
-                lastVel = vel;
-                vel =  ((Math.Sqrt(Math.Pow(diff.X / xDiv, 2) + Math.Pow(diff.Y, 2)) / 12.5) / reportMsAvg);
-                holdVel = vel;
+                vel1 = vel0;
+                vel0 =  ((Math.Sqrt(Math.Pow(dir0.X / xDiv, 2) + Math.Pow(dir0.Y, 2)) / 12.5) / reportMsAvg);
+                hold1Vel0 = vel0;
 
-                lastAccel = accel;
-                accel = vel - ((Math.Sqrt(Math.Pow(seconddiff.X / xDiv, 2) + Math.Pow(seconddiff.Y, 2)) / 12.5) / reportMsAvg);
+                accel1 = accel0;
+                accel0 = vel0 - ((Math.Sqrt(Math.Pow(dir1.X / xDiv, 2) + Math.Pow(dir1.Y, 2)) / 12.5) / reportMsAvg);
 
-                    // Has less use than it probably should.
-                lastJerk = jerk;
-                jerk = accel - lastAccel;
+                jerk1 = jerk0;
+                jerk0 = accel0 - accel1;
 
-                snap = jerk - lastJerk;
+                angleIndexPoint = 2 * dir0 - dir1 - dir2;
+                indexFactor1 = indexFactor0;
+                indexFactor0 = (Math.Sqrt(Math.Pow(angleIndexPoint.X / xDiv, 2) + Math.Pow(angleIndexPoint.Y, 2)) / 12.5) / reportMsAvg;
 
-                    // Angle index doesn't even use angles directly.
-                angleIndexPoint = 2 * diff - seconddiff - thirddiff;
-                lastIndexFactor = indexFactor;
-                indexFactor = (Math.Sqrt(Math.Pow(angleIndexPoint.X / xDiv, 2) + Math.Pow(angleIndexPoint.Y, 2)) / 12.5) / reportMsAvg;
+                if (accel0 < 0 && accel1 > 0) {
+                    velPeakDir = dir1;
+                }
+
+                if (accel0 > 0 && accel1 < 0) {
+                    dirFactor = 1.25 * Smootherstep(dir0.Length() / velPeakDir.Length(), 0.3, 0.1);
+                    if (pointAccel0.Length() > 3) {
+                        dirFactor *= Math.Max(0, Math.Pow(Vector2.Dot(Vector2.Normalize(pointAccel0), Vector2.Normalize(Vector2.Zero - velPeakDir)), 1));
+                    }
+                }
+                else if (jerk0 + jerk1 < 0) {
+                    dirFactor = 1;
+                }
+
+               // Console.WriteLine(dirFactor);
 
 
                 if (xt1)
-                accelMult = Smootherstep(accel, -1 / (6 / amvDiv), 0) + Smootherstep(accel / Math.Log((Math.Pow(lastVel / xng + 1, xng)) + 1), 0, 1 / (6 / amvDiv));
-                else accelMult = Smootherstep(accel, -1 / (6 / amvDiv), 0) + Smootherstep(accel, 0, 1 / (6 / amvDiv));   // Usually 1, reaches 0 and 2 under sufficient deceleration and acceleration respecctively
+                accelMult = Smootherstep((accel0 * dirFactor), -1 / (6 / amvDiv), 0) + Smootherstep((accel0 * dirFactor) / Math.Log((Math.Pow(vel1 / xng + 1, xng)) + 1), 0, 1 / (6 / amvDiv));
+                else accelMult = Smootherstep((accel0 * dirFactor), -1 / (6 / amvDiv), 0) + Smootherstep((accel0 * dirFactor), 0, 1 / (6 / amvDiv));
+
                 
-            /// You can uncomment for advanced diagnostics.
-            //    Console.WriteLine(vel);
-            //    Console.WriteLine(accel);
-            //    Console.WriteLine(jerk);
-            //    Console.WriteLine(snap);
-            //    Console.WriteLine("-----------");
-            //    Console.WriteLine(angleIndex);
-            //    Console.WriteLine(angleIndex - lastIndex);
-            //    Console.WriteLine(rOuterAdjusted(value, cursor, rOuter, rInner));
-            //    Console.WriteLine("-------------------------------------------");
+
+
+
+
             }
         }
 
-            // 2.0 behavior.
         void AdvancedBehavior()
         {
 
             sinceSnap += 1;
-            doubt = 0;
-            if ((Math.Abs(indexFactor) > vel * 2 | (accel / vel > 0.35)) && (vel / rawv > 0.25))
-            {
-            //    Console.WriteLine("snapping?");
-            //    Console.WriteLine(accel / vel);
+            if ((Math.Abs(indexFactor0) > vel0 * 2 | (accel0 / vel0 > 0.35)) && (vel0 / rawv > 0.25)) {
                 sinceSnap = 0;
-                doubt = 1;
             }
 
-            last9Vel = last8Vel;
+            vel9 = vel8;
 
-            last8Vel = last7Vel;
+            vel8 = vel7;
 
-            last7Vel = last6Vel;
+            vel7 = vel6;
 
-            last6Vel = last5Vel;
+            vel6 = vel5;
 
-            last5Vel = last4Vel;
+            vel5 = vel4;
 
-            last4Vel = last3Vel;
+            vel4 = vel3;
 
-            last3Vel = last2Vel;
+            vel3 = vel2;
 
-            last2Vel = lastVel;
+            vel2 = vel1;
 
-            spinCheck = Math.Clamp(Math.Pow(vel / (rawv * scConf), 5), 0, 1) +
-                        Math.Clamp(Math.Pow(lastVel / (rawv * scConf), 5), 0, 1) +
-                        Math.Clamp(Math.Pow(last2Vel / (rawv * scConf), 5), 0, 1) +
-                        Math.Clamp(Math.Pow(last3Vel / (rawv * scConf), 5), 0, 1) +
-                        Math.Clamp(Math.Pow(last4Vel / (rawv * scConf), 5), 0, 1) +
-                        Math.Clamp(Math.Pow(last5Vel / (rawv * scConf), 5), 0, 1) +
-                        Math.Clamp(Math.Pow(last6Vel / (rawv * scConf), 5), 0, 1) +
-                        Math.Clamp(Math.Pow(last7Vel / (rawv * scConf), 5), 0, 1) +
-                        Math.Clamp(Math.Pow(last8Vel / (rawv * scConf), 5), 0, 1) +
-                        Math.Clamp(Math.Pow(last9Vel / (rawv * scConf), 5), 0, 1);
+            spinCheck = Math.Clamp(Math.Pow(vel0 / (rawv * scConf), 5), 0, 1) +
+                        Math.Clamp(Math.Pow(vel1 / (rawv * scConf), 5), 0, 1) +
+                        Math.Clamp(Math.Pow(vel2 / (rawv * scConf), 5), 0, 1) +
+                        Math.Clamp(Math.Pow(vel3 / (rawv * scConf), 5), 0, 1) +
+                        Math.Clamp(Math.Pow(vel4 / (rawv * scConf), 5), 0, 1) +
+                        Math.Clamp(Math.Pow(vel5 / (rawv * scConf), 5), 0, 1) +
+                        Math.Clamp(Math.Pow(vel6 / (rawv * scConf), 5), 0, 1) +
+                        Math.Clamp(Math.Pow(vel7 / (rawv * scConf), 5), 0, 1) +
+                        Math.Clamp(Math.Pow(vel8 / (rawv * scConf), 5), 0, 1) +
+                        Math.Clamp(Math.Pow(vel9 / (rawv * scConf), 5), 0, 1);
 
-        //    if (indexFactor > Math.Max(1 / (6 / rawv), angidx * vel))
-        //    {
-        //        if (!((vel > rawv & lastVel > rawv) || 
-        //        (accel > (1 / (6 / rawv)) & jerk > (1 / (6 / rawv)) & snap > (1 / (6 / rawv)))))
-        //        {
-        //        Console.WriteLine("OH MY GOD BRUH");
-        //        Console.WriteLine(vel);
-        //        }
-        //    }
-
-            if ( // (vel > rawv & lastVel > rawv) || 
-                (accel > (1 / (6 / rawv)) & jerk > (1 / (6 / rawv)) & snap > (1 / (6 / rawv))) ||
-                (indexFactor > Math.Max(1 / (6 / rawv), angidx * vel)))
+            if ( // (vel0 > rawv & vel1 > rawv) || 
+                (accel0 > (1 / (6 / rawv)) & jerk0 > (1 / (6 / rawv))) ||
+                (indexFactor0 > Math.Max(1 / (6 / rawv), angidx * vel0)))
             {
-                vel *= 10 * vDiv;
+                vel0 *= 10 * vDiv;
                 accelMult = 2;
             }
 
-            holdVel2 = vel;
+            hold2Vel0 = vel0;
 
-            if ((distanceGround < rOuter) & (vel > rawv & lastVel > rawv))
-            {
-                vel *= 10 * vDiv;
+            if ((distanceGround < rOuter) & (vel0 > rawv & vel1 > rawv)) {
+                vel0 *= 10 * vDiv;
                 accelMult = 2;
             }
 
-            if ((spinCheck > 8) && sinceSnap > 30)
-            {
-            //    Console.WriteLine("spinning?");
-                vel = 0;
-                accel = -10 * rawThreshold;
+            if ((spinCheck > 8) && sinceSnap > 30) {
+                vel0 = 0;
+                accel0 = -10 * rawThreshold;
             }
-
-
         }
 
-            // Grounded radius behavior
-        void GroundedRadius(IDeviceReport value, Vector2 target)
-        {
-                // Not radius max
-            if (holdVel2 * Math.Pow(accelMult, accPower) < vDiv)
-            {
+        void GroundedRadius(IDeviceReport value, Vector2 target) {
+            if (hold2Vel0 * Math.Pow(accelMult, accPower) < vDiv) {
                 radiusGroundCount = 0;
                 distanceGround = 0;
-              //  Console.WriteLine(holdVel2);
             }
                 else radiusGroundCount += 1;
 
-            if (accelMult < 1.99)
-            {
-                sinceAccelTop = 0;
+            if (accelMult < 1.99) {
+                sinceAccelPeak = 0;
             }
-            else sinceAccelTop += 1;
+            else sinceAccelPeak += 1;
 
-                // Radius max
-            if (holdVel2 * Math.Pow(accelMult, accPower) >= vDiv)
-            {
+            if (hold2Vel0 * Math.Pow(accelMult, accPower) >= vDiv) {
                 if ((radiusGroundCount <= 1) || 
-                
-                (vel > rawv & lastVel > rawv) && 
-                ((accel > (1 / (6 / rawv)) & jerk > (1 / (6 / rawv)) & snap > (1 / (6 / rawv))) ||
-                (indexFactor > Math.Max(1 / (6 / rawv), angidx * vel)) ||
-                (sinceAccelTop > 0)))
+                (vel0 > rawv & vel1 > rawv) && 
+                ((accel0 > (1 / (6 / rawv)) & jerk0 > (1 / (6 / rawv))) ||
+                (indexFactor0 > Math.Max(1 / (6 / rawv), angidx * vel0)) ||
+                (sinceAccelPeak > 0)))
                 {
                     groundedPoint = cursor;
                 }
-                    groundedDiff = target - groundedPoint;
-                    distanceGround = Math.Sqrt(Math.Pow(groundedDiff.X, 2) + Math.Pow(groundedDiff.Y, 2));
+                groundedDist = target - groundedPoint;
+                distanceGround = Math.Sqrt(Math.Pow(groundedDist.X, 2) + Math.Pow(groundedDist.Y, 2));
                     
             }
-               //   Console.WriteLine(radiusGroundCount);
-               //   Console.WriteLine(distanceGround);
-                  //  Console.WriteLine(holdVel2 * Math.Pow(accelMult, accPower));
-
-
-                // Cursor is outside max outer radius while radius is usually maxed? Act as if radius doesn't exist for smooth movement
-            if (distanceGround > rOuter)
-            {
-                vel = 0;
-                accel = -10 * rawThreshold;
+            if (distanceGround > rOuter) {
+                vel0 = 0;
+                accel0 = -10 * rawThreshold;
             }
-
         }
 
-        void AdvancedReset()
-        {
-            vel =  ((Math.Sqrt(Math.Pow(diff.X / xDiv, 2) + Math.Pow(diff.Y, 2)) / 12.5) / reportMsAvg);
-            accel = vel - ((Math.Sqrt(Math.Pow(seconddiff.X / xDiv, 2) + Math.Pow(seconddiff.Y, 2)) / 12.5) / reportMsAvg);   // This serves no use but might later on.
+        void AdvancedReset() {
+            vel0 =  ((Math.Sqrt(Math.Pow(dir0.X / xDiv, 2) + Math.Pow(dir0.Y, 2)) / 12.5) / reportMsAvg);
+            accel0 = vel0 - ((Math.Sqrt(Math.Pow(dir1.X / xDiv, 2) + Math.Pow(dir1.Y, 2)) / 12.5) / reportMsAvg);   // This serves no use but might later on.
         }
         
         /// Math functions
         
-        double kneeFunc(double x) => x switch
-        {
+        double kneeFunc(double x) => x switch {
             < -3 => x,
             < 3 => Math.Log(Math.Tanh(Math.Exp(x)), Math.E),
             _ => 0,
         };
 
-        public static double Smoothstep(double x, double start, double end) // Copy pasted out of osu! pp. Thanks StanR 
-        {
+        public static double Smoothstep(double x, double start, double end) {
             x = Math.Clamp((x - start) / (end - start), 0.0, 1.0);
 
             return x * x * (3.0 - 2.0 * x);
         }
 
-        public static double Smootherstep(double x, double start, double end) // this too
-        {
+        public static double Smootherstep(double x, double start, double end) {
             x = Math.Clamp((x - start) / (end - start), 0.0, 1.0);
 
             return x * x * x * (x * (6.0 * x - 15.0) + 10.0);
         }
 
-        public static double Lerp(double x, double start, double end)
-        {
+        public static double Lerp(double x, double start, double end) {
             x = Math.Clamp(x, 0, 1);
             return start + (end - start) * x;
         }
 
-        public static Vector2 LerpedCursor(float x, Vector2 cursor, Vector2 target)
-        {
-            x = Math.Clamp(x, 0.0f, 1.0f);
-    
-         return new Vector2
-         (
-             cursor.X + (target.X - cursor.X) * x,
-             cursor.Y + (target.Y - cursor.Y) * x
-         );
-        }
-
-        double kneeScaled(IDeviceReport value, double x) 
-        {
-            return knScale switch
-            {
+        double kneeScaled(IDeviceReport value, double x) {
+            return knScale switch {
                 > 0.0001f => (knScale) * kneeFunc(x / (knScale)) + 1,
                 _ => x > 0 ? 1 : 1 + x,
             };
@@ -497,14 +435,12 @@ namespace AdaptiveRadialFollow
         
         double inverseTanh(double x) => Math.Log((1 + x) / (1 - x), Math.E) / 2;
 
-        double inverseKneeScaled(IDeviceReport value, double x) 
-        {
+        double inverseKneeScaled(IDeviceReport value, double x) {
             double velocity = 1;
             return (velocity * knScale) * Math.Log(inverseTanh(Math.Exp((x - 1) / (knScale * velocity))), Math.E);
         }
 
-        double derivKneeScaled(IDeviceReport value, double x)
-        {
+        double derivKneeScaled(IDeviceReport value, double x) {
             var e = Math.Exp(x / (knScale));
             var tanh = Math.Tanh(e);
             return (e - e * (tanh * tanh)) / tanh;
@@ -514,70 +450,56 @@ namespace AdaptiveRadialFollow
 
         double getScaleComp(IDeviceReport value) => derivKneeScaled(value, getXOffset(value));
 
-        public double rOuterAdjusted(IDeviceReport value, Vector2 cursor, double rOuter, double rInner)
-        {
-            if (value is ITabletReport report)
-            {
-                double velocity = vel * Math.Pow(accelMult, accPower);
+        public double rOuterAdjusted(IDeviceReport value, Vector2 cursor, double rOuter, double rInner) {
+            if (value is ITabletReport report) {
+                double velocity = vel0 * Math.Pow(accelMult, accPower);
                 return Math.Max(Math.Min(Math.Pow(velocity / vDiv, radPower), 1), minMult) * Math.Max(rOuter, rInner + 0.0001f);
             }
-            else
-            return 0;
+            else {
+                return 0;
+            }
         }
 
-        public double rInnerAdjusted(IDeviceReport value, Vector2 cursor, double rInner)
-        {
-            if (value is ITabletReport report)
-            {
-                double velocity = vel * Math.Pow(accelMult, accPower);
+        public double rInnerAdjusted(IDeviceReport value, Vector2 cursor, double rInner) {
+            if (value is ITabletReport report) {
+                double velocity = vel0 * Math.Pow(accelMult, accPower);
                 return Math.Max(Math.Min(Math.Pow(velocity / vDiv, radPower), 1), minMult) * rInner;
             }
-            else
-            {
-            return 0;
+            else {
+                return 0;
             }
         }
 
         double leakedFn(IDeviceReport value, double x, double offset, double scaleComp)
         => kneeScaled(value, x + offset) * (1 - leakCoef) + x * leakCoef * scaleComp;
 
-        double smoothedFn(IDeviceReport value, double x, double offset, double scaleComp)
-        {
+        double smoothedFn(IDeviceReport value, double x, double offset, double scaleComp) {
             double velocity = 1;
             double LowVelocityUnsmooth = 1;
-            if (value is ITabletReport report)
-            {
-                velocity = vel;
-                LowVelocityUnsmooth = 1 + (Smoothstep(vel * accelMult, vDiv, 0) * (minSmooth - 1));
+            if (value is ITabletReport report) {
+                velocity = vel0;
+                LowVelocityUnsmooth = 1 + (Smoothstep(vel0 * accelMult, vDiv, 0) * (minSmooth - 1));
             }
 
             return leakedFn(value, x * (smoothCoef / LowVelocityUnsmooth) / scaleComp, offset, scaleComp);
         }
 
-        double scaleToOuter(IDeviceReport value, double x, double offset, double scaleComp)
-        {
-            if (value is ITabletReport report)
-            {
+        double scaleToOuter(IDeviceReport value, double x, double offset, double scaleComp) {
+            if (value is ITabletReport report) {
                 return (rOuterAdjusted(value, cursor, rOuter, rInner) - rInnerAdjusted(value, cursor, rInner)) * smoothedFn(value, x / (rOuterAdjusted(value, cursor, rOuter, rInner) - rInnerAdjusted(value, cursor, rInner)), offset, scaleComp);
             }
-            else
-            {
+            else {
                 return (rOuter - rInner) * smoothedFn(value, x / (rOuter - rInner), offset, scaleComp);
             } 
         }
 
-        double deltaFn(IDeviceReport value, double x, double offset, double scaleComp)
-        {
-            if (value is ITabletReport report)
-            {
+        double deltaFn(IDeviceReport value, double x, double offset, double scaleComp) {
+            if (value is ITabletReport report) {
                 return x > rInnerAdjusted(value, cursor, rInner) ? x - scaleToOuter(value, x - rInnerAdjusted(value, cursor, rInner), offset / 1, scaleComp / 1) - rInnerAdjusted(value, cursor, rInner) : 0;
             }
-            else
-            {
+            else {
                 return x > rInner ? x - scaleToOuter(value, x - rInner, offset, scaleComp) - rInnerAdjusted(value, cursor, rInner) : 0;
             }
-
-
         }
 
         Vector2 cursor;
@@ -589,84 +511,57 @@ namespace AdaptiveRadialFollow
         
         double scaleComp(IDeviceReport value) => getScaleComp(value);
 
-        public Vector2 last3Report;
-        
-        public Vector2 lastLastReport;
+        public Vector2 pos0, pos1, pos2, pos3, dir0, dir1, dir2;
+        public Vector2 groundedPoint, groundedDist, angleIndexPoint;
+        public double vel0, hold1Vel0, hold2Vel0, vel1, vel2, vel3, vel4, vel5, vel6, vel7, vel8, vel9;
+        public double accel0, accel1;
+        public double jerk0, jerk1;
+        public double accelMult, lerpScale;
+        public double sinceAccelPeak;
+        public double reportMsAvg = 5;
+        public Vector2 pointAccel0, pointAccel1, pointAccel2;
+        public double distanceGround, indexFactor0, indexFactor1, radiusGroundCount, radiusGroundPosition, spinCheck, angleIndex, sinceSnap;
+        public Vector2 velPeakDir;
+        public double dirFactor;
 
-        public Vector2 lastReport;
-
-        public Vector2 currReport;
-
-        public Vector2 diff;
-
-        public Vector2 seconddiff;
-
-        public Vector2 thirddiff;
-
-        public double vel;
-
-        public double holdVel;
-
-        public double holdVel2;
-
-        public double lastVel;
-
-        public double last2Vel;
-
-        public double last3Vel;
-
-        public double last4Vel;
-
-        public double last5Vel;
-
-        public double last6Vel;
-
-        public double last7Vel;
-
-        public double last8Vel;
-
-        public double last9Vel;
-
+        /*public Vector2 pos3;   
+        public Vector2 pos2;
+        public Vector2 pos1;
+        public Vector2 pos0;
+        public Vector2 dir0;
+        public Vector2 dir1;
+        public Vector2 dir2;
+        public double vel0;
+        public double hold1Vel0;
+        public double hold2Vel0;
+        public double vel1;
+        public double vel2;
+        public double vel3;
+        public double vel4;
+        public double vel5;
+        public double vel6;
+        public double vel7;
+        public double vel8;
+        public double vel9;
         public double spinCheck;
-
-        public double lastAccel;
-
-        public double accel;
-
-        public double lastJerk;
-
-        public double jerk;
-
-        public double snap;
-
+        public double accel1;
+        public double accel0;
+        public double jerk1;
+        public double jerk0;
         public double accelMult;
-
         public double lerpScale;
-
         public Vector2 angleIndexPoint;
-
-        public double lastIndexFactor;
-
-        public double indexFactor;
-
+        public double indexFactor1;
+        public double indexFactor0;
         public double angleIndex;
-
         public double sinceSnap;
-
         public double radiusGroundCount;
-
         public double radiusGroundPosition;
-
         public Vector2 groundedPoint;
-
-        public Vector2 groundedDiff;
-
+        public Vector2 groundedDist;
         public double distanceGround;
-
         public double doubt;
-
-        public double sinceAccelTop;
-
-        private double reportMsAvg = 5;
+        public double sinceAccelPeak;
+        private double reportMsAvg = 5; */
     }
 }
