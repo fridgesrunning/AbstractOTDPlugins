@@ -282,19 +282,22 @@ namespace AdaptiveRadialFollow
 
                 if (accel0 < 0 && accel1 > 0) {
                     velPeakDir = dir1;
+                    spinninglikely = 0;
                 }
 
-                if (accel0 > 0 && accel1 < 0 && pointAccel1.Length() + pointAccel0.Length() > 5) {
-                    dirFactor = 1.25 * Smootherstep(dir0.Length() / velPeakDir.Length(), 0.3, 0.1);
+                if (accel0 > 0 && accel1 < 0) {
+                    spinninglikely = ((vel1 + vel0) / (1.5 * rawv));
+                }
+
+                if (accel0 > 0 && accel1 < 0 && pointAccel1.Length() + pointAccel0.Length() > 3) {
+                    dirFactor = 1.25 * Smootherstep(dir0.Length() / velPeakDir.Length(), 0.5, 0.3);
                     if (pointAccel0.Length() > 5) {
                         dirFactor *= Math.Max(0, Math.Pow(Vector2.Dot(Vector2.Normalize(pointAccel0), Vector2.Normalize(Vector2.Zero - velPeakDir)), 1));
                     }
                 }
-                else if (jerk0 + jerk1 < 0) {
+                else if (accel0 < 0) {
                     dirFactor = 1;
                 }
-
-               // Console.WriteLine(dirFactor);
 
 
                 if (xt1)
@@ -345,7 +348,7 @@ namespace AdaptiveRadialFollow
                         Math.Clamp(Math.Pow(vel9 / (rawv * scConf), 5), 0, 1);
 
             if ( // (vel0 > rawv & vel1 > rawv) || 
-                (accel0 > (1 / (6 / rawv)) & jerk0 > (1 / (6 / rawv))) ||
+                (accel0 > (1 / (6 / rawv) * 0.5 + 0.5 * Smoothstep(DotNorm(pointAccel0, dir1), 1, 0.5)) & jerk0 > (1 / (6 / rawv) * 0.5 + 0.5 * Smoothstep(DotNorm(pointAccel0, dir1), 1, 0.5))) ||
                 (indexFactor0 > Math.Max(1 / (6 / rawv), angidx * vel0)))
             {
                 vel0 *= 10 * vDiv;
@@ -359,7 +362,7 @@ namespace AdaptiveRadialFollow
                 accelMult = 2;
             }
 
-            if ((spinCheck > 8) && sinceSnap > 30) {
+            if ((spinCheck > 8) && sinceSnap > 30 || spinninglikely > 1) {
                 vel0 = 0;
                 accel0 = -10 * rawThreshold;
             }
@@ -502,6 +505,10 @@ namespace AdaptiveRadialFollow
             }
         }
 
+        double DotNorm(Vector2 a, Vector2 b) {
+            return Vector2.Dot(Vector2.Normalize(a), Vector2.Normalize(b));
+        }
+
         Vector2 cursor;
         Vector2 holdCursor;
         Vector2 lastCursor;
@@ -523,6 +530,8 @@ namespace AdaptiveRadialFollow
         public double distanceGround, indexFactor0, indexFactor1, radiusGroundCount, radiusGroundPosition, spinCheck, angleIndex, sinceSnap;
         public Vector2 velPeakDir;
         public double dirFactor;
+        public Vector2 cluster;
+        public double spinninglikely;
 
         /*public Vector2 pos3;   
         public Vector2 pos2;
