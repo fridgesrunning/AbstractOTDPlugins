@@ -171,6 +171,19 @@ namespace AdaptiveRadialFollow
         }
         public double xng;
 
+        public bool extratoggle2
+        {
+            get { return xt2; }
+            set { xt2 = value; }
+        }
+        public bool xt2;
+
+        public bool extratoggle3
+        {
+            get { return xt3; }
+            set { xt3 = value; }
+        }
+        public bool xt3;
 
         public float SampleRadialCurve(IDeviceReport value, float dist) => (float)deltaFn(value, dist, xOffset(value), scaleComp(value));
         public double ResetMs = 1;
@@ -247,6 +260,8 @@ namespace AdaptiveRadialFollow
             if (aToggle == true)
             AdvancedReset();
 
+            
+
             return cursor;
         }
 
@@ -257,6 +272,9 @@ namespace AdaptiveRadialFollow
                 pos2 = pos1;
                 pos1 = pos0;
                 pos0 = report.Position;
+
+                pressure1 = pressure0;
+                pressure0 = report.Pressure;
 
                 dir2 = dir1;
                 dir1 = dir0;
@@ -289,26 +307,31 @@ namespace AdaptiveRadialFollow
                     spinninglikely = ((vel1 + vel0) / (1.5 * rawv));
                 }
 
-                if (accel0 > 0 && accel1 < 0 && pointAccel1.Length() + pointAccel0.Length() > 3) {
-                    dirFactor = 1.25 * Smootherstep(dir0.Length() / velPeakDir.Length(), 0.5, 0.3);
+                /*Console.WriteLine(Vector2.Distance(dir0, velPeakDir));
+                Console.WriteLine(velPeakDir.Length());
+                Console.WriteLine(dir0.Length());
+                Console.WriteLine("----------------------"); */
+
+
+                if ((accel0 > 0 && accel1 < 0 && pointAccel1.Length() + pointAccel0.Length() > 3)) {
+                    dirFactor = 1.25 * Smootherstep(dir0.Length() / velPeakDir.Length(), 0.6, 0.4);
                     if (pointAccel0.Length() > 5) {
                         dirFactor *= Math.Max(0, Math.Pow(Vector2.Dot(Vector2.Normalize(pointAccel0), Vector2.Normalize(Vector2.Zero - velPeakDir)), 1));
                     }
                 }
                 else if (accel0 < 0) {
                     dirFactor = 1;
+                    if (Vector2.Distance(dir0, velPeakDir) > velPeakDir.Length() * 0.75) {
+                        dirFactor = 1.25 * Smootherstep(dir0.Length() / velPeakDir.Length(), 0.6, 0.4);
+                        if (pointAccel0.Length() > 5) {
+                        dirFactor *= Math.Max(0, Math.Pow(Vector2.Dot(Vector2.Normalize(pointAccel0), Vector2.Normalize(Vector2.Zero - velPeakDir)), 1));
+                    }
+                    }
                 }
-
 
                 if (xt1)
                 accelMult = Smootherstep((accel0 * dirFactor), -1 / (6 / amvDiv), 0) + Smootherstep((accel0 * dirFactor) / Math.Log((Math.Pow(vel1 / xng + 1, xng)) + 1), 0, 1 / (6 / amvDiv));
                 else accelMult = Smootherstep((accel0 * dirFactor), -1 / (6 / amvDiv), 0) + Smootherstep((accel0 * dirFactor), 0, 1 / (6 / amvDiv));
-
-                
-
-
-
-
             }
         }
 
@@ -365,6 +388,32 @@ namespace AdaptiveRadialFollow
             if ((spinCheck > 8) && sinceSnap > 30 || spinninglikely > 1) {
                 vel0 = 0;
                 accel0 = -10 * rawThreshold;
+            }
+
+            if (xt2) {
+                if (pressure0 > 0 && pressure1 == 0) {
+                    emergency = 3;
+                    vel0 = vDiv / 10;
+                    accelMult = 0;
+                    accel0 = 0;
+                }
+                else if (pressure1 > 0 && pressure0 == 0) {
+                    emergency = 3;
+                    vel0 = vDiv / 10;
+                    accelMult = 0;
+                    accel0 = 0;
+                }
+                else if (emergency > 0) {
+                    emergency--;
+                    vel0 = vDiv / 10;
+                    accelMult = 0;
+                    accel0 = 0;
+                }                
+            }
+
+            if (xt3) {
+                if (jerk1 + jerk0 < 0 && vel0 < rawv / 6)
+                accelMult = 0;
             }
         }
 
@@ -532,6 +581,7 @@ namespace AdaptiveRadialFollow
         public double dirFactor;
         public Vector2 cluster;
         public double spinninglikely;
+        uint pressure0, pressure1, emergency;
 
         /*public Vector2 pos3;   
         public Vector2 pos2;

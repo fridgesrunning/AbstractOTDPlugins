@@ -292,6 +292,26 @@ namespace AdaptiveRadialFollow
             set { radialCore.extrastuffg = value; }
         }
 
+        [BooleanProperty("Panic On Lift/Press (Wacom Pro)", ""), DefaultPropertyValue(false), ToolTip
+        (
+            "If you have a 2025 Intuos Pro, definitely enable this. Maybe applicable on 2017 Intuos Pro"
+        )]
+        public bool extratoggle2
+        {
+            get => radialCore.extratoggle2;
+            set { radialCore.extratoggle2 = value; }
+        }
+
+        [BooleanProperty("Trustworthy Tablet", ""), DefaultPropertyValue(false), ToolTip
+        (
+            "If you have a 2025 Intuos Pro, definitely enable this. Maybe applicable on 2017 Intuos Pro"
+        )]
+        public bool extratoggle3
+        {
+            get => radialCore.extratoggle3;
+            set { radialCore.extratoggle3 = value; }
+        }
+
         public event Action<IDeviceReport> Emit;
 
         public void Consume(IDeviceReport value)
